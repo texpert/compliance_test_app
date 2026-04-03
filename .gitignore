@@ -25,3 +25,7 @@
 
 # Evidence artifacts that may contain sensitive data
 /docs/evidence/
+
+# Ignore key files for decrypting credentials and more.
+/config/*.key
+
