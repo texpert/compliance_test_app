@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Certificates and secrets
+/config/certs/*
+*.pem
+*.key
+*.p12
+*.pfx
+*.csr
+
+# Rails runtime artifacts
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/storage/*
+!/storage/.keep
+/coverage/
+
+# Evidence artifacts that may contain sensitive data
+/docs/evidence/
