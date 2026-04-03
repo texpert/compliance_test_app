@@ -1,6 +1,9 @@
 # macOS
 .DS_Store
 
+# IDE metadata
+.idea/
+
 # Local environment
 .env
 .env.*
@@ -28,4 +31,3 @@
 
 # Ignore key files for decrypting credentials and more.
 /config/*.key
-
