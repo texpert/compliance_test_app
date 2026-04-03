@@ -22,6 +22,12 @@ bin/rails db:prepare
 - Push branch and open PR into `main`.
 - Keep commits focused and reviewable.
 
+## Task Start / Finish Checklist
+- Before starting a new domain task, review relevant files from `knowledge/` and prior records in `decisions/`.
+- While working, test whether any existing hypothesis can be confirmed or contradicted.
+- Before marking a task complete, evaluate it against `quality/criteria.md`.
+- See deeper guidance in `docs/agents/knowledge_architecture.md`, `docs/agents/decision_journal.md`, and `docs/agents/quality_gate.md`.
+
 ## When to Update Agent Docs
 - If setup commands change, update `AGENTS.md`, this file, and `README.md` in the same PR.
 - If test commands change, update `docs/agents/testing.md`, `AGENTS.md`, and `README.md` in the same PR.
