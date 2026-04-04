@@ -8,7 +8,7 @@ Salt Edge Compliance demo app: Rails 8.1.3 + RSpec for simulating AIS flow with 
   - `mise install`
   - `bundle install`
   - `bin/rails db:prepare`
-  - `bundle exec rspec`
+  - `bin/rspec`
 - Workflow rule: do not work directly on `main`; use dedicated branches and open PRs.
 - Before non-trivial tasks, review relevant knowledge and prior decisions; before finishing, check project quality criteria.
 - Keep secrets out of git (`.env`, certificate keys); use `.env.example` and local `config/certs/*` paths.

@@ -2,11 +2,12 @@
 
 ## Baseline Test Command
 ```bash
-bundle exec rspec
+bin/rspec
 ```
+`bin/rspec` enforces `RAILS_ENV=test` unconditionally. Always use this instead of `bundle exec rspec` directly.
 
 ## Expected Verification for App Changes
-- Run `bundle exec rspec` before opening a PR.
+- Run `bin/rspec` before opening a PR.
 - If a change affects setup or test commands, update `AGENTS.md`, this file, and `README.md` in the same PR.
 
 ## Related Verification Commands

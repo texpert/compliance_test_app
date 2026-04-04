@@ -37,7 +37,7 @@ bin/rails server
 
 ## Run Tests
 ```bash
-bundle exec rspec
+bin/rspec
 ```
 
 ## Documentation Map
