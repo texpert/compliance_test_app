@@ -22,6 +22,13 @@ bin/rails db:prepare
 - Push branch and open PR into `main`.
 - Keep commits focused and reviewable.
 
+## PR Description Rules
+- PR descriptions must summarize changes at a general level (what changed and why), not commit-by-commit.
+- PR descriptions must include one sentence on user-visible impact (or explicitly state there is no user-visible impact).
+- PR descriptions must not include a `Files Changed` section.
+- PR descriptions must not include test example/failure counts.
+- PR descriptions must not reference commit SHAs or commit history in the description.
+
 ## Task Start / Finish Checklist
 - Before starting a new domain task, review relevant files from `knowledge/` and prior records in `decisions/`.
 - While working, test whether any existing hypothesis can be confirmed or contradicted.
