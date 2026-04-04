@@ -44,7 +44,7 @@ bin/rspec
 - Plan: `docs/salt_edge_compliance_plan.md`
 - Portal discovery notes: `docs/tpp_discovery_notes.md`
 - AIS endpoint checklist: `docs/ais_api_checklist.md`
-- QSEAL certificate guide: `docs/Certificate Generation Guide.pdf`
+- QSEAL certificate guide: `docs/certificate_generation_guide.md`
 - QSEAL runbook: `docs/qseal_generation_runbook.md`
 - Local QSEAL storage policy: `docs/local_qseal_storage.md`
 - TPP registration log: `docs/tpp_registration_log.md`

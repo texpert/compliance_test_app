@@ -12,6 +12,12 @@ Deliver a Rails demo integration that simulates a simple AIS flow against Salt E
 
 ## Work Plan (Milestones + Deliverables)
 
+### 0) Priora Portal Registration Prerequisite
+- Register at `https://priora.saltedge.com/` before TPP Verifier checks.
+- Obtain verifier client credentials (`App-Id`, `App-Secret`) from portal connection details.
+- Store credential values only in local secret storage (`.env`, not in git).
+- Exit criteria: verifier credentials are available locally and ready for certificate verification calls.
+
 ### 1) Portal Investigation and Requirements Baseline
 - Read and map portal sections for introduction, certificates, AIS consents, accounts, and transactions endpoints.
 - Capture required headers, auth/signature requirements, redirect/callback parameters, and sandbox prerequisites.
@@ -21,16 +27,18 @@ Deliver a Rails demo integration that simulates a simple AIS flow against Salt E
 - Exit criteria: all AIS happy-path calls and redirects are mapped end-to-end.
 
 ### 2) Generate Test eIDAS QSEAL Certificates
-- Follow `Certificate Generation Guide.pdf` to generate sandbox-compatible QSEAL assets.
+- Follow `docs/certificate_generation_guide.md` to generate sandbox-compatible QSEAL assets.
 - Record certificate metadata and usage notes without storing sensitive private keys in repo.
+- Run TPP Verifier check with PEM certificate string and valid verifier credentials.
 - Deliverables:
   - `docs/qseal_generation_runbook.md`
   - local secure key/cert storage instructions (outside git)
-- Exit criteria: certificate chain/fingerprint is ready for TPP registration.
+- Exit criteria: certificate chain/fingerprint is ready for TPP registration and verifier call succeeds (`HTTP 200`) with valid credentials.
 
 ### 3) Register TPP in Salt Edge Sandbox
 - Complete TPP registration using generated test certificates.
 - Configure redirect URI(s) for Rails app callback route(s).
+- Confirm whether OAuth credentials for AIS flow are distinct from verifier client credentials, and document both.
 - Deliverables:
   - `docs/tpp_registration_log.md`
   - environment variable contract (`SE_*` keys) documented in `README.md` later
@@ -75,9 +83,10 @@ Deliver a Rails demo integration that simulates a simple AIS flow against Salt E
 - Undocumented sandbox behavior: record observed behavior in inconsistencies list with exact endpoint and payload context.
 
 ## Suggested Execution Order
-1. Investigation and checklists
-2. QSEAL generation
-3. TPP registration
-4. Rails flow implementation
-5. Diagram and documentation
-6. Evidence capture and final delivery
+1. Priora registration and verifier credential retrieval
+2. Investigation and checklists
+3. QSEAL generation + verifier check
+4. TPP registration
+5. Rails flow implementation
+6. Diagram and documentation
+7. Evidence capture and final delivery

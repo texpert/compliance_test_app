@@ -7,7 +7,7 @@
 
 ## Sources Reviewed
 - Intro: Berlin Group NextGenPSD2 XS2A Framework 1.3.x specification + Salt Edge Berlingroup portal introduction section
-- Certificates: `docs/Certificate Generation Guide.pdf` (Salt Edge); eIDAS QSEAL requirements from ETSI EN 319 412
+- Certificates: `docs/certificate_generation_guide.md` (Salt Edge); eIDAS QSEAL requirements from ETSI EN 319 412
 - AIS Consents: Berlin Group spec §7 (Account Information Services) — consent creation, status, deletion
 - Accounts: Berlin Group spec §7.3 — account list, account details
 - Transactions: Berlin Group spec §7.4 — transaction list with date filters
@@ -39,7 +39,8 @@
   - Key type: RSA 2048+ or EC P-256/P-384
 
 ## Redirect and Callback Contract
-- Redirect URL configured: `http://localhost:3000/callback` for local dev; ngrok-exposed URL for sandbox callback registration (see Milestone 3)
+- Redirect URL configured: `https://ad18-109-185-141-9.ngrok-free.app/callback` (connector URL + callback route)
+- Current connector URL observed during registration setup (ephemeral): `https://ad18-109-185-141-9.ngrok-free.app`
 - Callback path in app: `GET /callback` (to be implemented in Milestone 4)
 - Required query/body params on callback return:
   - `state` — mandatory; must match value sent in `TPP-Redirect-URI` query string at consent creation _(⚠️ verify exact param name in portal)_

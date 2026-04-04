@@ -16,6 +16,8 @@
 *.p12
 *.pfx
 *.csr
+*.crt
+*.srl
 
 # Rails runtime artifacts
 /log/*

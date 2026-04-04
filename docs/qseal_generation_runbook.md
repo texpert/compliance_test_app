@@ -1,194 +1,189 @@
 # QSEAL Generation Runbook
 
 ## Goal
-Generate sandbox-compatible QSEAL certificate artifacts for Salt Edge TPP registration without storing secret key material in git.
+Generate sandbox-compatible certificate artifacts for Salt Edge TPP registration using the guide flow, with all secret material kept outside git.
 
-## References
-- `docs/Certificate Generation Guide.pdf`
+## Canonical Source
+- `docs/certificate_generation_guide.md`
 - `docs/agents/secrets.md`
-- `docs/tpp_discovery_notes.md` (certificate expectations and open questions)
 
-## Preconditions
-- OpenSSL is installed locally (`openssl version`).
-- You have a private local directory outside the repository for certificate artifacts.
-- You reviewed `docs/agents/secrets.md` and confirmed no key/cert files will be committed.
-- You know the sandbox subject values to use for your organization:
-  - Common Name (CN)
-  - `organizationIdentifier` (example format: `PSDE-BaFin-123456`)
+## Local Execution Record (Milestone 2)
+- Execution date: `2026-04-04`
+- Execution path (outside repo): `$HOME/secrets/saltedge/qseal/guide_2026-04-04`
+- Output files generated locally:
+  - `ca_private.key`
+  - `ca.csr`
+  - `ca_certificate.crt`
+  - `client_private.key`
+  - `client.csr`
+  - `client_signed_certifcate.crt`
+  - `client_public.key`
+  - `ca_certificate.srl`
+- Public key used for registration uploads: `$HOME/secrets/saltedge/qseal/guide_2026-04-04/client_public.key`
 
-## Output Artifacts (local only)
-Store all generated files outside this repository (example: `~/secrets/saltedge/qseal/`):
-- `qseal_private.key` (private key, encrypted)
-- `qseal_request.csr` (certificate signing request)
-- `qseal_cert.pem` (test certificate)
-- `qseal_bundle.p12` (optional PKCS#12 bundle)
+## Procedure (Guide-aligned)
 
-## Procedure
-
-### 1) Prepare secure local folder
+### 1) Prepare local secure folder
 ```bash
-mkdir -p "$HOME/secrets/saltedge/qseal"
-chmod 700 "$HOME/secrets/saltedge/qseal"
+mkdir -p "$HOME/secrets/saltedge/qseal/guide_2026-04-04"
+chmod 700 "$HOME/secrets/saltedge/qseal/guide_2026-04-04"
+cd "$HOME/secrets/saltedge/qseal/guide_2026-04-04"
 ```
 
-### 2) Generate encrypted private key (RSA 3072)
+### 2) Generate CA and Client private keys
 ```bash
-openssl genpkey \
-  -algorithm RSA \
-  -pkeyopt rsa_keygen_bits:3072 \
-  -aes-256-cbc \
-  -out "$HOME/secrets/saltedge/qseal/qseal_private.key"
-
-chmod 600 "$HOME/secrets/saltedge/qseal/qseal_private.key"
+openssl genrsa -out ca_private.key 2048
+openssl genrsa -out client_private.key 2048
+chmod 600 ca_private.key client_private.key
 ```
 
-### 3) Create OpenSSL extension config for PSD2 roles
-```bash
-cat > "$HOME/secrets/saltedge/qseal/qseal_openssl_ext.cnf" <<'EOF'
+### 3) Create CA config (`ca_openssl.cnf`)
+```ini
+oid_section = my_oid
+
 [ req ]
-default_md = sha256
+default_bits = 2048
 prompt = no
+encrypt_key = no
+default_md = sha1
 distinguished_name = dn
-req_extensions = req_ext
 
 [ dn ]
-C = DE
-O = Example TPP GmbH
-CN = Example TPP QSEAL
-organizationIdentifier = PSDE-BaFin-123456
+CN = Fake CA Authority
+O = Fake CA
+C = UK
+ST = Fake street
 
-[ req_ext ]
-keyUsage = critical, digitalSignature, nonRepudiation
-extendedKeyUsage = clientAuth
-certificatePolicies = @polsect
+[ cert_ext ]
+subjectKeyIdentifier=hash
+keyUsage=critical,digitalSignature,keyEncipherment
+extendedKeyUsage=clientAuth,serverAuth
 
-[ polsect ]
-policyIdentifier = 0.4.0.19495.2
-CPS.1 = "https://example.invalid/psd2-policy"
-userNotice.1 = @notice
-
-[ notice ]
-explicitText = "PSD2 roles: PSP_AI"
-EOF
-
-chmod 600 "$HOME/secrets/saltedge/qseal/qseal_openssl_ext.cnf"
+[ my_oid ]
+organizationIdentifier=2.5.4.97
 ```
 
-### 4) Generate CSR
+### 4) Create CA CSR and self-signed CA certificate
 ```bash
-openssl req -new \
-  -key "$HOME/secrets/saltedge/qseal/qseal_private.key" \
-  -out "$HOME/secrets/saltedge/qseal/qseal_request.csr" \
-  -config "$HOME/secrets/saltedge/qseal/qseal_openssl_ext.cnf"
-
-chmod 600 "$HOME/secrets/saltedge/qseal/qseal_request.csr"
+openssl req -config ca_openssl.cnf -new -key ca_private.key -nodes -out ca.csr
+openssl x509 -signkey ca_private.key -in ca.csr -req -days 365 -out ca_certificate.crt
+chmod 600 ca.csr ca_certificate.crt
 ```
 
-### 5) Issue sandbox test certificate
-Use one of the following:
+### 5) Create Client config (`client_openssl.cnf`)
+```ini
+oid_section = OIDs
 
-- If Salt Edge sandbox provides signing flow, submit `qseal_request.csr` there and save the issued certificate as `qseal_cert.pem`.
-- If self-signed certs are accepted in sandbox, generate a temporary self-signed cert:
+[ req ]
+default_bits = 2048
+prompt = no
+encrypt_key = no
+default_md = sha1
+distinguished_name = dn
+req_extensions = cert_ext
 
+[ dn ]
+CN = Fake TPP
+O = Fake TPP
+C = UK
+ST = Fake Street
+organizationIdentifier = PGB-123
+
+[ cert_ext ]
+basicConstraints = CA:TRUE
+subjectKeyIdentifier = hash
+keyUsage = critical,digitalSignature,keyEncipherment
+extendedKeyUsage = clientAuth,serverAuth
+qcStatements = "ASN1:UTF8String:...statement PSP_AI PSP_PI PSP_CI..."
+
+[ OIDs ]
+organizationIdentifier = 2.5.4.97
+```
+
+### 6) Create Client CSR
 ```bash
-openssl x509 -req \
-  -in "$HOME/secrets/saltedge/qseal/qseal_request.csr" \
-  -signkey "$HOME/secrets/saltedge/qseal/qseal_private.key" \
-  -days 365 \
-  -sha256 \
-  -extfile "$HOME/secrets/saltedge/qseal/qseal_openssl_ext.cnf" \
-  -extensions req_ext \
-  -out "$HOME/secrets/saltedge/qseal/qseal_cert.pem"
-
-chmod 600 "$HOME/secrets/saltedge/qseal/qseal_cert.pem"
+openssl req -config client_openssl.cnf -new -key client_private.key -nodes -out client.csr
+chmod 600 client.csr
 ```
 
-### 5b) Import and verify CA chain (sandbox-issued certificates)
-If the sandbox returns an intermediate/root chain, keep it local and verify before registration.
-
+### 7) Sign Client CSR with self-signed CA
 ```bash
-# Example files from portal or issuer
-# - qseal_cert.pem (leaf)
-# - qseal_intermediate.pem
-# - qseal_root.pem
-
-cat \
-  "$HOME/secrets/saltedge/qseal/qseal_intermediate.pem" \
-  "$HOME/secrets/saltedge/qseal/qseal_root.pem" \
-  > "$HOME/secrets/saltedge/qseal/qseal_ca_chain.pem"
-
-chmod 600 "$HOME/secrets/saltedge/qseal/qseal_ca_chain.pem"
-
-openssl verify \
-  -CAfile "$HOME/secrets/saltedge/qseal/qseal_ca_chain.pem" \
-  "$HOME/secrets/saltedge/qseal/qseal_cert.pem"
+openssl x509 -req -days 360 -extfile client_openssl.cnf -extensions cert_ext -in client.csr \
+ -CAcreateserial -CA ca_certificate.crt -CAkey ca_private.key -out client_signed_certifcate.crt
+chmod 600 client_signed_certifcate.crt ca_certificate.srl
 ```
 
-If the issuer provides DER/P7B formats, convert them to PEM first:
-
-```bash
-openssl x509 -inform DER -in "$HOME/secrets/saltedge/qseal/qseal_intermediate.der" -out "$HOME/secrets/saltedge/qseal/qseal_intermediate.pem"
-openssl pkcs7 -print_certs -in "$HOME/secrets/saltedge/qseal/qseal_chain.p7b" -out "$HOME/secrets/saltedge/qseal/qseal_chain_from_p7b.pem"
-```
-
-### 6) Export optional PKCS#12 bundle for portal upload
-```bash
-openssl pkcs12 -export \
-  -inkey "$HOME/secrets/saltedge/qseal/qseal_private.key" \
-  -in "$HOME/secrets/saltedge/qseal/qseal_cert.pem" \
-  -name "saltedge-qseal" \
-  -out "$HOME/secrets/saltedge/qseal/qseal_bundle.p12"
-
-chmod 600 "$HOME/secrets/saltedge/qseal/qseal_bundle.p12"
-```
-
-### 7) Capture metadata for project docs (safe to store in git)
+### 8) Validate and capture metadata
 ```bash
 openssl version
-openssl x509 -in "$HOME/secrets/saltedge/qseal/qseal_cert.pem" -noout -subject -issuer -serial -startdate -enddate
-openssl x509 -in "$HOME/secrets/saltedge/qseal/qseal_cert.pem" -noout -fingerprint -sha256
-openssl x509 -in "$HOME/secrets/saltedge/qseal/qseal_cert.pem" -noout -text | grep -E "Subject:|Subject Alternative Name|Policy|1\.3\.6\.1\.5\.5\.7\.3\.2|0\.4\.0\.19495"
-openssl x509 -in "$HOME/secrets/saltedge/qseal/qseal_cert.pem" -pubkey -noout | openssl pkey -pubin -outform DER | openssl dgst -sha256
+openssl x509 -in client_signed_certifcate.crt -noout -subject -issuer -serial -startdate -enddate
+openssl x509 -in client_signed_certifcate.crt -noout -fingerprint -sha256
+openssl x509 -in client_signed_certifcate.crt -noout -text | grep -E "Subject:|organizationIdentifier|qcStatements|X509v3"
 ```
 
-Record only non-secret metadata in `docs/tpp_registration_log.md` and `docs/qseal_generation_runbook.md` troubleshooting notes:
+### 9) Verify certificate via Salt Edge TPP Verifier (PEM string input)
+The API expects the certificate as a **PEM string** in `data.certificate`.
+
+```bash
+CERT_PATH="$HOME/secrets/saltedge/qseal/guide_2026-04-04/client_signed_certifcate.crt"
+APP_ID="<your_tpp_verifier_app_id>"
+APP_SECRET="<your_tpp_verifier_app_secret>"
+
+PAYLOAD=$(jq -Rn --arg cert "$(cat "$CERT_PATH")" '{data:{certificate:$cert}}')
+
+curl -sS -o /tmp/tpp_verifier_response.json -w "%{http_code}\n" \
+  -H "App-Id: $APP_ID" \
+  -H "App-Secret: $APP_SECRET" \
+  -H "Content-Type: application/json" \
+  -d "$PAYLOAD" \
+  "https://priora.saltedge.com/api/tpp_verifiers/v2/certificates"
+
+cat /tmp/tpp_verifier_response.json | jq .
+```
+
+Expected successful result:
+- HTTP `200`
+- `data.certificate.fingerprint` present
+- `data.eligible` and `data.mode` present
+
+If credentials are invalid/missing:
+- Non-200 response (for example `404` with `TppVerifierClientNotFound`)
+- Treat this as an environment credential blocker, not a certificate-format failure
+
+Error classification quick guide:
+- `TppVerifierClientNotFound` -> **credential-scope** (wrong `App-Id`/`App-Secret`)
+- `WrongRequiredFields` -> **payload/certificate-content scope**
+
+Note from Option B test:
+- Artea sandbox `Test credentials (Oauth)` values (`Username`/`Password`/`OTP`) were tested and are **not** valid TPP Verifier `App-Id`/`App-Secret` credentials.
+- These OAuth creds are for sandbox user/auth flows, not verifier client connection details.
+
+## Notes from Actual Run
+- The guide's `oid_section` aliasing for `organizationIdentifier` can trigger an OpenSSL conflict on some versions (`oid exists`).
+- If that happens, keep all other config fields unchanged and remove only these lines from local files before retry:
+  - `oid_section = my_oid`
+  - `[ my_oid ]` + `organizationIdentifier=2.5.4.97`
+  - `oid_section = OIDs`
+  - `[ OIDs ]` + `organizationIdentifier = 2.5.4.97`
+- Local execution on this machine used that compatibility fallback and still produced the expected cert outputs.
+
+## Evidence Scope (Do/Do Not)
+
+### Record in repo
 - SHA-256 fingerprint
-- Serial number
-- Validity period (`notBefore`, `notAfter`)
-- Subject OIDs observed (including PSD2 OIDs)
-- OpenSSL version used to generate and inspect the certificate
+- Subject / issuer / serial
+- Validity dates
+- Observed OID-related fields and extension presence (`organizationIdentifier`, `qcStatements`)
+- OpenSSL version used
 
-## Record vs Never Record
+### Never record in repo
+- Private key content
+- Full CSR body content
+- PKCS#12 contents/passphrases
+- Any raw secret env values
 
-### Safe to record in repository docs
-- SHA-256 certificate fingerprint
-- Certificate subject/issuer and serial number
-- Validity period (`notBefore`, `notAfter`)
-- Subject OIDs and PSD2-related policy OIDs present in certificate details
-- OpenSSL version used for generation/inspection
-- Public certificate algorithm and key size
-- High-level error messages and resolutions
-
-### Never store in repository docs
-- Private key content (`*.key`)
-- PKCS#12 file content or passphrase
-- Full unredacted CSR if it contains sensitive internal identifiers
-- Raw environment secret values (`SE_*` secret content)
-
-## Verification Checklist
-- Private key exists only in local secure directory outside git.
-- Key and cert files have restrictive permissions (`600`).
-- Certificate fingerprint has been recorded.
-- Subject includes expected identity fields and `organizationIdentifier`.
-- Certificate contains required PSD2 policy OID and expected key usage extensions.
-- If issuer chain is provided, CA chain was imported and `openssl verify` succeeds.
-- OpenSSL version used is recorded with metadata notes.
-- Optional `.p12` bundle opens successfully with expected passphrase.
-- `git status` shows no certificate or key material tracked.
-
-## Secure Storage Notes
-See `docs/local_qseal_storage.md` for local-only storage policy.
-
-## Troubleshooting Log
-| Timestamp | Step | Error | Resolution |
-|---|---|---|---|
+## Milestone 2 Exit Criteria Check
+- Certificate chain ready: self-signed CA cert + signed client cert generated locally.
+- Certificate fingerprint ready: extracted and recorded in `docs/tpp_registration_log.md`.
+- Secret handling respected: no key/CSR/P12 content committed to git.
+- TPP Verifier success (`HTTP 200`) with valid verifier client credentials: **pending** (currently blocked by `TppVerifierClientNotFound`).

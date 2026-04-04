@@ -13,6 +13,7 @@ Use this file as the single source of truth for secret material in this reposito
 - Do not commit secrets to git.
 - Keep `.env.example` as template-only (no real values).
 - Keep certificate and key files local; store only non-sensitive docs/runbooks in `docs/`.
+- Generated public key artifacts (for example `~/secrets/saltedge/qseal/guide_2026-04-04/client_public.key`) are non-secret but should remain local unless a portal explicitly requires upload/sharing.
 
 ## Enforcement and References
 - Ignore rules are defined in `.gitignore` (`.env*`, `config/*.key`, `config/certs/*`, key/cert extensions).

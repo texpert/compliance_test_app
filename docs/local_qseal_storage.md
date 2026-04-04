@@ -13,6 +13,7 @@ Use a path under your home directory:
 - Private key: `~/secrets/saltedge/qseal/qseal_private.key`
 - Certificate: `~/secrets/saltedge/qseal/qseal_cert.pem`
 - Bundle: `~/secrets/saltedge/qseal/qseal_bundle.p12`
+- Run-specific public key (for portal registration/upload): `~/secrets/saltedge/qseal/guide_2026-04-04/client_public.key`
 
 ## Permissions
 Apply strict permissions after creating files:
