@@ -46,6 +46,7 @@ bin/rspec
 - AIS endpoint checklist: `docs/ais_api_checklist.md`
 - QSEAL certificate guide: `docs/Certificate Generation Guide.pdf`
 - QSEAL runbook: `docs/qseal_generation_runbook.md`
+- Local QSEAL storage policy: `docs/local_qseal_storage.md`
 - TPP registration log: `docs/tpp_registration_log.md`
 - AIS flow sequence: `docs/ais_flow_sequence.md`
 - Functional diagram notes: `docs/functional_diagram.md`
@@ -55,3 +56,5 @@ bin/rspec
 
 ## Environment Variables
 Copy `.env.example` to `.env` and fill the `SE_*` values required for sandbox integration.
+
+For QSEAL paths, use local file locations outside this repository (for example under `$HOME/secrets/...`) as described in `docs/local_qseal_storage.md`.
