@@ -14,8 +14,7 @@ In `config/application.rb`, keep these commented out unless a task explicitly ne
 - `rails/test_unit`
 
 ## Repo Rules
-- Do not commit local secrets (`.env`, private cert/key files).
-- Use `.env.example` for env var shape and keep actual values local.
+- Follow `docs/agents/secrets.md` for what counts as a secret and how to handle it.
 
 ## Documentation Rules
 - Keep runnable commands in `README.md` aligned with actual scripts/binaries.
