@@ -27,6 +27,7 @@ bin/rails db:prepare
 - PR descriptions must include one sentence on user-visible impact (or explicitly state there is no user-visible impact).
 - PR descriptions must not include a `Files Changed` section.
 - PR descriptions must not include test example/failure counts.
+- PR descriptions must not describe how verification was performed (commands run, environments used, or step-by-step validation details).
 - PR descriptions must not reference commit SHAs or commit history in the description.
 
 ## Task Start / Finish Checklist

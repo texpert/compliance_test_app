@@ -4,6 +4,9 @@ Use this index to route agents to active domain knowledge folders.
 
 ## Domains
 - `knowledge/salt_edge_ais/` — Salt Edge AIS flow, sandbox behaviors, compliance integration patterns
+  - `knowledge.md`: populated M1 — confirmed BG spec endpoints, headers, signing, SCA flow
+  - `hypotheses.md`: populated M1 — base URL version, SCA auto-approve, callback params, cert validation
+  - `rules.md`: populated M1 — X-Request-ID, Digest, no-commit-keys, state validation, consent status check, log filtering
 
 ## Folder Contract
 Each domain folder must contain these three files:
