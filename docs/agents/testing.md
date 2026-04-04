@@ -9,9 +9,11 @@ bin/rspec
 ## Expected Verification for App Changes
 - Run `bin/rspec` before opening a PR.
 - If a change affects setup or test commands, update `AGENTS.md`, this file, and `README.md` in the same PR.
+- Follow forced verification rules in `docs/agents/mechanical_overrides.md` before reporting completion.
 
 ## Related Verification Commands
 ```bash
+bin/rails zeitwerk:check
 bin/rubocop
 bin/brakeman --no-pager
 bin/bundler-audit
