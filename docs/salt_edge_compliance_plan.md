@@ -22,16 +22,16 @@ Deliver a Rails demo integration that simulates a simple AIS flow against Salt E
 - Read and map portal sections for introduction, certificates, AIS consents, accounts, and transactions endpoints.
 - Capture required headers, auth/signature requirements, redirect/callback parameters, and sandbox prerequisites.
 - Deliverables:
-  - `docs/tpp_discovery_notes.md`
-  - `docs/ais_api_checklist.md` (endpoint + method + mandatory headers + expected responses)
+  - [tpp_discovery_notes.md](tpp_discovery_notes.md)
+  - [ais_api_checklist.md](ais_api_checklist.md) (endpoint + method + mandatory headers + expected responses)
 - Exit criteria: all AIS happy-path calls and redirects are mapped end-to-end.
 
 ### 2) Generate Test eIDAS QSEAL Certificates
-- Follow `docs/certificate_generation_guide.md` to generate sandbox-compatible QSEAL assets.
+- Follow [certificate_generation_guide.md](certificate_generation_guide.md) to generate sandbox-compatible QSEAL assets.
 - Record certificate metadata and usage notes without storing sensitive private keys in repo.
 - Run TPP Verifier check with PEM certificate string and valid verifier credentials.
 - Deliverables:
-  - `docs/qseal_generation_runbook.md`
+  - [qseal_generation_runbook.md](qseal_generation_runbook.md)
   - local secure key/cert storage instructions (outside git)
   - `script/tpp_verifier_check.sh` — docs-compliant verifier call script (uses `App-Id`/`App-Secret`, no signing headers)
   - `script/tpp_register_replay_success_shape.sh` — canonical TPP registration replay script (flat payload + byte-stable digest/signature flow)
@@ -51,7 +51,7 @@ Deliver a Rails demo integration that simulates a simple AIS flow against Salt E
 - Configure redirect URI(s) for Rails app callback route(s).
 - Confirm whether OAuth credentials for AIS flow are distinct from verifier client credentials, and document both.
 - Deliverables:
-  - `docs/tpp_registration_log.md`
+  - [tpp_registration_log.md](tpp_registration_log.md)
   - environment variable contract (`SE_*` keys) documented in `README.md` later
 - Exit criteria: sandbox accepts registration and app can reach auth entrypoint for AIS consent flow.
 
@@ -72,14 +72,14 @@ Status (2026-04-09): API submission accepted, async validation pending
 - Add lightweight request/flow logging (sanitize secrets).
 - Deliverables:
   - runnable Rails app code
-  - `docs/ais_flow_sequence.md` (step-by-step with request/response notes)
+  - [ais_flow_sequence.md](ais_flow_sequence.md) (step-by-step with request/response notes)
 - Exit criteria: one repeatable happy path from consent creation to transactions fetch.
 
 ### 5) Produce High-Level Functional Diagram
 - Create a system diagram covering actors: PSU, TPP, ASPSP, IDS.
 - Include functional blocks: consent management, account services, TPP certificate verification, ASPSP reports, ASPSP dashboard, sandbox management.
 - Deliverables:
-  - `docs/functional_diagram.md`
+  - [functional_diagram.md](functional_diagram.md)
   - diagram file (`docs/diagrams/open_banking_system.png` or `.drawio`)
 - Exit criteria: diagram explains responsibilities and inter-service interactions clearly.
 
@@ -88,8 +88,8 @@ Status (2026-04-09): API submission accepted, async validation pending
 - Publish code to public repository for review.
 - Document discovered inconsistencies/errors between docs and actual TPP journey.
 - Deliverables:
-  - `docs/ais_flow_evidence.md`
-  - `docs/inconsistencies_and_errors.md`
+  - [ais_flow_evidence.md](ais_flow_evidence.md)
+  - [inconsistencies_and_errors.md](inconsistencies_and_errors.md)
   - final `README.md` with setup and run instructions
 - Exit criteria: reviewer can reproduce and validate the flow and findings.
 

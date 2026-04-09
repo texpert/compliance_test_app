@@ -4,15 +4,15 @@
 Generate sandbox-compatible certificate artifacts for Salt Edge TPP registration using the guide flow, with all secret material kept outside git.
 
 ## Canonical Source
-- `docs/certificate_generation_guide.md`
-- `docs/agents/secrets.md`
+- [certificate_generation_guide.md](certificate_generation_guide.md)
+- [secrets.md](agents/secrets.md)
 
 ## Attempt Folder Rule (Strict)
 - Use a **new folder for every certificate generation attempt**.
 - Never overwrite a previous attempt folder.
 - Folder naming pattern: `guide_YYYY-MM-DD-<attempt-tag>` (examples: `guide_2026-04-04`, `guide_2026-04-04-texpert`, `guide_2026-04-04-texpert-v2`).
 - If a folder already exists, stop and create a new attempt tag instead of regenerating in place.
-- Record each attempt folder path in `docs/tpp_registration_log.md` with outcome notes.
+- Record each attempt folder path in [tpp_registration_log.md](tpp_registration_log.md) with outcome notes.
 
 ## Near-Original BG Script Sync Rule (Strict)
 - For every new attempt using `script/originals/bg_cert_gen.sh`, pass the company name as a quoted argument:
@@ -22,7 +22,7 @@ Generate sandbox-compatible certificate artifacts for Salt Edge TPP registration
   - `YOUR_CERTIFICATES_PRIVATE_RSA_KEY` path -> current attempt private key file
   - `COMPANY_NAME` -> same company name used in the quoted `-n` argument
 - Do not run `bg_register.rb` until these per-attempt values are updated.
-- Canonical policy location during experimentation: this section + `docs/tpp_registration_log.md` (cross-link each new attempt row to this rule).
+- Canonical policy location during experimentation: this section + [tpp_registration_log.md](tpp_registration_log.md) (cross-link each new attempt row to this rule).
 
 ## Local Execution Record (Milestone 2)
 - Execution date: `2026-04-04` (initial); last regeneration: `2026-04-07`
@@ -231,7 +231,7 @@ Note from Option B test:
 
 ## Milestone 2 Exit Criteria Check
 - Certificate chain ready: self-signed CA cert + signed client cert generated locally. **COMPLETED (2026-04-09)**
-- Certificate fingerprint ready: extracted and recorded in `docs/tpp_registration_log.md` and `docs/tpp_register_artifacts/2026-04-09-texpert/analysis.md`.
+- Certificate fingerprint ready: extracted and recorded in [tpp_registration_log.md](tpp_registration_log.md) and `docs/tpp_register_artifacts/2026-04-09-texpert/analysis.md`.
 - Secret handling respected: no key/CSR/P12 content committed to git.
 - TPP Verifier success (`HTTP 200`) with valid verifier client credentials: **pending** (requires `App-Id`/`App-Secret` from Priora connection details or provisioning).
 

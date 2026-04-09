@@ -1,7 +1,7 @@
 # Knowledge Architecture
 
 ## Before Starting a Task
-- Review existing domain rules and hypotheses in `docs/knowledge/` before starting a new task.
+- Review existing domain rules and hypotheses in [INDEX.md](../knowledge/INDEX.md) before starting a new task.
 - Apply rules by default.
 - Check whether today's work can confirm or contradict any hypothesis.
 
@@ -17,7 +17,7 @@ Each domain folder should contain:
 - `rules.md` — confirmed patterns to apply by default
 
 ## Index
-- Maintain `docs/knowledge/INDEX.md` as the router to active domain folders.
+- Maintain [INDEX.md](../knowledge/INDEX.md) as the router to active domain folders.
 - Create a new domain entry in the index whenever a new knowledge folder is added.
 
 ## Promotion / Demotion Rules

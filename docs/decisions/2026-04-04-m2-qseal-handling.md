@@ -23,7 +23,7 @@ Never store private keys, passphrases, or PKCS#12 contents in git.
 
 ## Rationale
 - Meets Milestone 2 deliverables with reproducible steps.
-- Aligns with `docs/agents/secrets.md` and existing ignore rules.
+- Aligns with [secrets.md](../agents/secrets.md) and existing ignore rules.
 - Keeps TPP registration preparation practical while minimizing leak risk.
 
 ## Consequences

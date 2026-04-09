@@ -1,7 +1,7 @@
 # Quality Gate and System Review
 
 ## Quality Gate
-Before marking any task complete, evaluate it against `docs/quality/criteria.md`.
+Before marking any task complete, evaluate it against [criteria.md](../quality/criteria.md).
 
 ## Criteria Maintenance
 After evaluation:
@@ -10,7 +10,7 @@ After evaluation:
 - If a criterion never triggers after 10+ evaluations, suggest pruning it.
 - If you find a new failure pattern, flag it and propose a new criterion; do not add it silently.
 
-## If `docs/quality/criteria.md` Is Missing
+## If [criteria.md](../quality/criteria.md) Is Missing
 - Create it with initial criteria based on the project domain and current standards.
 - Ask the user to review the initial criteria.
 
