@@ -8,7 +8,7 @@
 Milestone 2 requires generating sandbox-compatible QSEAL artifacts and recording enough metadata for TPP registration while preserving the repository secret-handling policy.
 
 ## Decision
-Use an OpenSSL-based local workflow that generates key, CSR, and test certificate artifacts outside the repository (for example under `$HOME/secrets/saltedge/qseal/`).
+Use an OpenSSL-based local workflow that generates key, CSR, and test certificate artifacts outside the repository (preferred location: repository-level, git-ignored `./secrets/qseal/`).
 
 For sandbox-issued certificates, import and locally verify the CA chain before registration.
 
@@ -27,6 +27,6 @@ Never store private keys, passphrases, or PKCS#12 contents in git.
 - Keeps TPP registration preparation practical while minimizing leak risk.
 
 ## Consequences
-- `.env` values must point to local absolute paths outside the repository.
+- `.env` values should point to local paths outside the repository; prefer the repo-level, git-ignored `./secrets/` folder for canonical local test artifacts.
 - Team members must provision their own local secure storage before certificate generation.
 - If the sandbox requires an issuer chain, chain import and local verification become mandatory before registration.

@@ -48,6 +48,11 @@
 - Subject `organizationIdentifier`: `PSxx-{registrar}-{id}` format
 - Key: RSA 2048+ or EC P-256/P-384
 
+### OpenSSL OID Behavior
+- OpenSSL `1.1.1d+` and all `3.x` builds already include `organizationIdentifier` (`2.5.4.97`) as a built-in attribute name.
+- In these versions, manual OID registration for `2.5.4.97` causes `OBJ_create: oid exists` and can break CSR/certificate generation.
+- Certificate output uses `organizationIdentifier` (name) instead of raw OID number `2.5.4.97`.
+
 ### SCA Flow
 1. TPP creates consent → gets `consentId` + `scaRedirect` URL
 2. TPP redirects PSU browser to `scaRedirect`

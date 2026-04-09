@@ -12,6 +12,23 @@
 - Accounts: Berlin Group spec §7.3 — account list, account details
 - Transactions: Berlin Group spec §7.4 — transaction list with date filters
 
+## TLS Cipher Suite Policy
+> Source: https://priora.saltedge.com/docs/tpp_verifier#changelog (announced 23 Dec 2021, effective 3 Feb 2022)
+
+The following CBC-mode cipher suites are **no longer supported** on PSD2 APIs since 3 Feb 2022:
+- `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`
+- `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`
+
+**Supported suites** (all GCM/CHACHA20 based):
+- `TLS_AES_256_GCM_SHA384` (TLS 1.3)
+- `TLS_CHACHA20_POLY1305_SHA256` (TLS 1.3)
+- `TLS_AES_128_GCM_SHA256` (TLS 1.3)
+- `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384` (TLS 1.2)
+- `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256` (TLS 1.2)
+- `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` (TLS 1.2)
+
+All TLS 1.2 suites are `ECDHE-RSA-*` — RSA keys are used for authentication only, not key exchange. Our RSA 2048-bit certificate (`sha256WithRSAEncryption`) is **fully compatible** with all listed suites. See `docs/certificate_generation_guide.md` §9 for verified details.
+
 ## Authentication and Signing Requirements
 - Base URL: `https://ob.saltedge.com/api/berlingroup/v2/` _(⚠️ verify exact host/version in portal)_
 - Required headers (all requests):
