@@ -7,7 +7,7 @@
 
 ## Sources Reviewed
 - Intro: Berlin Group NextGenPSD2 XS2A Framework 1.3.x specification + Salt Edge Berlingroup portal introduction section
-- Certificates: `docs/certificate_generation_guide.md` (Salt Edge); eIDAS QSEAL requirements from ETSI EN 319 412
+- Certificates: [certificate_generation_guide.md](certificate_generation_guide.md) (Salt Edge); eIDAS QSEAL requirements from ETSI EN 319 412
 - AIS Consents: Berlin Group spec §7 (Account Information Services) — consent creation, status, deletion
 - Accounts: Berlin Group spec §7.3 — account list, account details
 - Transactions: Berlin Group spec §7.4 — transaction list with date filters
@@ -27,7 +27,7 @@ The following CBC-mode cipher suites are **no longer supported** on PSD2 APIs si
 - `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256` (TLS 1.2)
 - `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` (TLS 1.2)
 
-All TLS 1.2 suites are `ECDHE-RSA-*` — RSA keys are used for authentication only, not key exchange. Our RSA 2048-bit certificate (`sha256WithRSAEncryption`) is **fully compatible** with all listed suites. See `docs/certificate_generation_guide.md` §9 for verified details.
+All TLS 1.2 suites are `ECDHE-RSA-*` — RSA keys are used for authentication only, not key exchange. Our RSA 2048-bit certificate (`sha256WithRSAEncryption`) is **fully compatible** with all listed suites. See [certificate_generation_guide.md](certificate_generation_guide.md) §9 for verified details.
 
 ## Authentication and Signing Requirements
 - Base URL: `https://ob.saltedge.com/api/berlingroup/v2/` _(⚠️ verify exact host/version in portal)_

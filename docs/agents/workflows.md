@@ -8,7 +8,7 @@ bin/rails db:prepare
 ```
 
 ## Verification Pointer
-- Test and verification commands live in `docs/agents/testing.md`.
+- Test and verification commands live in [testing.md](testing.md).
 
 ## CI Parity Notes
 - CI runs security scans and lint from `.github/workflows/ci.yml`:
@@ -33,11 +33,11 @@ bin/rails db:prepare
 ## Task Start / Finish Checklist
 - Before starting a new domain task, review relevant files from `docs/knowledge/` and prior records in `docs/decisions/`.
 - While working, test whether any existing hypothesis can be confirmed or contradicted.
-- Before marking a task complete, evaluate it against `docs/quality/criteria.md`.
-- See deeper guidance in `docs/agents/knowledge_architecture.md`, `docs/agents/decision_journal.md`, and `docs/agents/quality_gate.md`.
-- Apply execution constraints from `docs/agents/mechanical_overrides.md` (step-0 cleanup, phased execution, edit integrity).
+- Before marking a task complete, evaluate it against [criteria.md](../quality/criteria.md).
+- See deeper guidance in [knowledge_architecture.md](knowledge_architecture.md), [decision_journal.md](decision_journal.md), and [quality_gate.md](quality_gate.md).
+- Apply execution constraints from [mechanical_overrides.md](mechanical_overrides.md) (step-0 cleanup, phased execution, edit integrity).
 
 ## When to Update Agent Docs
 - If setup commands change, update `AGENTS.md`, this file, and `README.md` in the same PR.
-- If test commands change, update `docs/agents/testing.md`, `AGENTS.md`, and `README.md` in the same PR.
+- If test commands change, update [testing.md](testing.md), `AGENTS.md`, and `README.md` in the same PR.
 - If CI commands change, update this file to match `.github/workflows/ci.yml`.

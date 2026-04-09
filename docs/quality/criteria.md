@@ -4,7 +4,7 @@ Please review these initial criteria.
 
 ## Category: Sandbox integration safety
 ## Criteria:
-- Secret handling follows `docs/agents/secrets.md` and no secret material is committed to git.
+- Secret handling follows [secrets.md](../agents/secrets.md) and no secret material is committed to git.
 - Callback and redirect configuration stays consistent with documented `SE_*` environment variables.
 ## Severity: blocking
 ## Source: Salt Edge sandbox integration workflow and repo secret-handling rules

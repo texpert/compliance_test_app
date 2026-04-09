@@ -20,6 +20,6 @@ Use this file as the single source of truth for secret material in this reposito
 
 ## Enforcement and References
 - Ignore rules are defined in `.gitignore` (`.env*`, `config/*.key`, `config/certs/*`, key/cert extensions).
-- Certificate handling workflow: `docs/qseal_generation_runbook.md`.
-- Local-only QSEAL storage instructions: `docs/local_qseal_storage.md`.
+- Certificate handling workflow: [qseal_generation_runbook.md](../qseal_generation_runbook.md).
+- Local-only QSEAL storage instructions: [local_qseal_storage.md](../local_qseal_storage.md).
 - Environment-variable shape: `.env.example` and `README.md`.
