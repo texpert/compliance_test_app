@@ -44,9 +44,12 @@ bin/rspec
 - Plan: `docs/salt_edge_compliance_plan.md`
 - Portal discovery notes: `docs/tpp_discovery_notes.md`
 - AIS endpoint checklist: `docs/ais_api_checklist.md`
-- QSEAL certificate guide: `docs/Certificate Generation Guide.pdf`
+- QSEAL certificate guide: `docs/certificate_generation_guide.md`
 - QSEAL runbook: `docs/qseal_generation_runbook.md`
+- Local QSEAL storage policy: `docs/local_qseal_storage.md`
 - TPP registration log: `docs/tpp_registration_log.md`
+- Priora API changelog: `docs/priora_api_changelog.md`
+- Script helpers (register/verifier troubleshooting): `script/README.md`
 - AIS flow sequence: `docs/ais_flow_sequence.md`
 - Functional diagram notes: `docs/functional_diagram.md`
 - Diagram source: `docs/diagrams/open_banking_system.drawio`
@@ -55,3 +58,5 @@ bin/rspec
 
 ## Environment Variables
 Copy `.env.example` to `.env` and fill the `SE_*` values required for sandbox integration.
+
+For QSEAL paths, use local file locations outside this repository (for example under `$HOME/secrets/...`) as described in `docs/local_qseal_storage.md`.

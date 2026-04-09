@@ -7,10 +7,27 @@
 
 ## Sources Reviewed
 - Intro: Berlin Group NextGenPSD2 XS2A Framework 1.3.x specification + Salt Edge Berlingroup portal introduction section
-- Certificates: `docs/Certificate Generation Guide.pdf` (Salt Edge); eIDAS QSEAL requirements from ETSI EN 319 412
+- Certificates: `docs/certificate_generation_guide.md` (Salt Edge); eIDAS QSEAL requirements from ETSI EN 319 412
 - AIS Consents: Berlin Group spec §7 (Account Information Services) — consent creation, status, deletion
 - Accounts: Berlin Group spec §7.3 — account list, account details
 - Transactions: Berlin Group spec §7.4 — transaction list with date filters
+
+## TLS Cipher Suite Policy
+> Source: https://priora.saltedge.com/docs/tpp_verifier#changelog (announced 23 Dec 2021, effective 3 Feb 2022)
+
+The following CBC-mode cipher suites are **no longer supported** on PSD2 APIs since 3 Feb 2022:
+- `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`
+- `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`
+
+**Supported suites** (all GCM/CHACHA20 based):
+- `TLS_AES_256_GCM_SHA384` (TLS 1.3)
+- `TLS_CHACHA20_POLY1305_SHA256` (TLS 1.3)
+- `TLS_AES_128_GCM_SHA256` (TLS 1.3)
+- `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384` (TLS 1.2)
+- `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256` (TLS 1.2)
+- `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` (TLS 1.2)
+
+All TLS 1.2 suites are `ECDHE-RSA-*` — RSA keys are used for authentication only, not key exchange. Our RSA 2048-bit certificate (`sha256WithRSAEncryption`) is **fully compatible** with all listed suites. See `docs/certificate_generation_guide.md` §9 for verified details.
 
 ## Authentication and Signing Requirements
 - Base URL: `https://ob.saltedge.com/api/berlingroup/v2/` _(⚠️ verify exact host/version in portal)_
@@ -39,7 +56,8 @@
   - Key type: RSA 2048+ or EC P-256/P-384
 
 ## Redirect and Callback Contract
-- Redirect URL configured: `http://localhost:3000/callback` for local dev; ngrok-exposed URL for sandbox callback registration (see Milestone 3)
+- Redirect URL configured: `https://ad18-109-185-141-9.ngrok-free.app/callback` (connector URL + callback route)
+- Current connector URL observed during registration setup (ephemeral): `https://ad18-109-185-141-9.ngrok-free.app`
 - Callback path in app: `GET /callback` (to be implemented in Milestone 4)
 - Required query/body params on callback return:
   - `state` — mandatory; must match value sent in `TPP-Redirect-URI` query string at consent creation _(⚠️ verify exact param name in portal)_

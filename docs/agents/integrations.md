@@ -13,8 +13,10 @@
 - Inconsistencies/errors: `docs/inconsistencies_and_errors.md`
 
 ## Certificate and Callback Inputs
-- Certificate guide source: `docs/Certificate Generation Guide.pdf`
+- Certificate guide source: `docs/certificate_generation_guide.md`
 - Certificate runbook: `docs/qseal_generation_runbook.md`
+-- Current generated public key for registration (local-only): `./secrets/qseal/guide_2026-04-04/client_public.key`
+- Current connector URL used during portal registration: `https://ad18-109-185-141-9.ngrok-free.app` (ephemeral ngrok URL)
 - Env contract uses `SE_*` variables from `.env.example` and `README.md`.
 
 ## Boundaries for Current Tasks
