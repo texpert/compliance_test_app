@@ -33,7 +33,18 @@ Deliver a Rails demo integration that simulates a simple AIS flow against Salt E
 - Deliverables:
   - `docs/qseal_generation_runbook.md`
   - local secure key/cert storage instructions (outside git)
+  - `script/tpp_verifier_check.sh` — docs-compliant verifier call script (uses `App-Id`/`App-Secret`, no signing headers)
+  - `script/tpp_register_replay_success_shape.sh` — canonical TPP registration replay script (flat payload + byte-stable digest/signature flow)
+  - `script/README.md` — per-script endpoint reference
 - Exit criteria: certificate chain/fingerprint is ready for TPP registration and verifier call succeeds (`HTTP 200`) with valid credentials.
+ - Exit criteria: certificate chain/fingerprint is ready for TPP registration and verifier call succeeds (`HTTP 200`) with valid credentials.
+
+- Status (2026-04-09): COMPLETED (local generation)
+- Safe docs view: `docs/tpp_register_artifacts/2026-04-09-texpert/` (extracted, non-secret files)
+- Canonical full secret bundle (git-ignored): `./secrets/qseal/guide_2026-04-09-texpert/texpert.zip`
+- Local attempt folder (non-repo): `script/attempts/guide_2026-04-09-texpert/texpert/`
+- OpenSSL observed: `OpenSSL 3.6.1` on local machine
+- Note: verifier call (`script/tpp_verifier_check.sh`) remains pending until valid `App-Id`/`App-Secret` for TPP Verifier are available in environment; prior verifier probes returned `404 TppVerifierClientNotFound` when wrong credentials were used.
 
 ### 3) Register TPP in Salt Edge Sandbox
 - Complete TPP registration using generated test certificates.
@@ -43,6 +54,11 @@ Deliver a Rails demo integration that simulates a simple AIS flow against Salt E
   - `docs/tpp_registration_log.md`
   - environment variable contract (`SE_*` keys) documented in `README.md` later
 - Exit criteria: sandbox accepts registration and app can reach auth entrypoint for AIS consent flow.
+
+Status (2026-04-09): API submission accepted, async validation pending
+- The canonical `bg_register.rb` submission from `script/attempts/guide_2026-04-09-texpert` received HTTP `200` with message: "Request is processed. We will send the response to branzeanu.aurel+tpp@gmail.com". Capture: X-Request-ID `39df37c4-54f5-40ec-942e-5d850b1cc7f0`.
+- Artifacts archived (safe docs view) at `docs/tpp_register_artifacts/2026-04-09-texpert/` (analysis.md + README). The canonical full secret bundle is stored in the repo-level git-ignored `./secrets/qseal/guide_2026-04-09-texpert/texpert.zip`.
+- Final certificate validity is subject to Priora async validation email; await confirmation before proceeding to verifier + AIS flow.
 
 ### 4) Build Rails Demo App for AIS Flow
 - Implement minimal user journey:

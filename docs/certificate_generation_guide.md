@@ -18,13 +18,11 @@ openssl genrsa -out client_private.key 2048
 Create a file named `ca_openssl.cnf` with:
 
 ```ini
-oid_section = my_oid
-
 [ req ]
 default_bits = 2048
 prompt = no
 encrypt_key = no
-default_md = sha1
+default_md = sha256
 distinguished_name = dn
 
 [ dn ]
@@ -37,9 +35,6 @@ ST = Fake street
 subjectKeyIdentifier=hash
 keyUsage=critical,digitalSignature,keyEncipherment
 extendedKeyUsage=clientAuth,serverAuth
-
-[ my_oid ]
-organizationIdentifier=2.5.4.97
 ```
 
 ## 3) Create CA CSR
@@ -56,33 +51,30 @@ openssl x509 -signkey ca_private.key -in ca.csr -req -days 365 -out ca_certifica
 Create a file named `client_openssl.cnf` with:
 
 ```ini
-oid_section = OIDs
-
 [ req ]
 default_bits = 2048
 prompt = no
 encrypt_key = no
-default_md = sha1
+default_md = sha256
 distinguished_name = dn
 req_extensions = cert_ext
 
 [ dn ]
-CN = Fake TPP
-O = Fake TPP
 C = UK
-ST = Fake Street
+O = Fake TPP
 organizationIdentifier = PGB-123
+CN = Fake TPP
+ST = Fake Street
 
 [ cert_ext ]
 basicConstraints = CA:TRUE
 subjectKeyIdentifier = hash
 keyUsage = critical,digitalSignature,keyEncipherment
 extendedKeyUsage = clientAuth,serverAuth
-qcStatements = "ASN1:UTF8String:...statement PSP_AI PSP_PI PSP_CI..."
-
-[ OIDs ]
-organizationIdentifier = 2.5.4.97
+qcStatements = "ASN1:UTF8String:...statement PSP_AS PSP_AI PSP_PI PSP_IC"
 ```
+
+> OpenSSL compatibility rule: on OpenSSL `1.1.1d+` and `3.x`, you must not add manual OID alias blocks for `2.5.4.97` (`organizationIdentifier`). This OID is built-in, and alias blocks fail with `OBJ_create: oid exists`.
 
 ## 6) Create Client CSR
 ```bash
@@ -102,3 +94,32 @@ This can be done using Salt Edge TPP Verifier service:
 
 For more information:
 - https://priora.saltedge.com/docs/tpp_verifier#certificates-verify
+
+## 9) TLS Cipher Suite Policy (PSD2 API)
+
+> Source: https://priora.saltedge.com/docs/tpp_verifier#changelog (announced 23 Dec 2021, effective 3 Feb 2022)
+
+### Removed (no longer supported)
+```
+TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+```
+
+### Supported cipher suites
+```
+TLS_AES_256_GCM_SHA384          (TLS 1.3)
+TLS_CHACHA20_POLY1305_SHA256    (TLS 1.3)
+TLS_AES_128_GCM_SHA256          (TLS 1.3)
+TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384      (TLS 1.2)
+TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 (TLS 1.2)
+TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256      (TLS 1.2)
+```
+
+### Compatibility with generated certificates
+
+All supported TLS 1.2 suites use `ECDHE-RSA-*` — meaning RSA keys are used for **authentication** (signing), not for key exchange. The RSA 2048-bit key generated in these steps is fully compatible with all listed suites.
+
+Verified on this setup:
+- Certificate signature algorithm: `sha256WithRSAEncryption`
+- Public key: `RSA 2048 bit`
+- All 6 supported suites confirmed available via `openssl ciphers -v`
