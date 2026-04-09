@@ -31,9 +31,9 @@ bin/rails db:prepare
 - PR descriptions must not reference commit SHAs or commit history in the description.
 
 ## Task Start / Finish Checklist
-- Before starting a new domain task, review relevant files from `knowledge/` and prior records in `decisions/`.
+- Before starting a new domain task, review relevant files from `docs/knowledge/` and prior records in `docs/decisions/`.
 - While working, test whether any existing hypothesis can be confirmed or contradicted.
-- Before marking a task complete, evaluate it against `quality/criteria.md`.
+- Before marking a task complete, evaluate it against `docs/quality/criteria.md`.
 - See deeper guidance in `docs/agents/knowledge_architecture.md`, `docs/agents/decision_journal.md`, and `docs/agents/quality_gate.md`.
 - Apply execution constraints from `docs/agents/mechanical_overrides.md` (step-0 cleanup, phased execution, edit integrity).
 

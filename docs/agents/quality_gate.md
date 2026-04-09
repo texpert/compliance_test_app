@@ -1,7 +1,7 @@
 # Quality Gate and System Review
 
 ## Quality Gate
-Before marking any task complete, evaluate it against `quality/criteria.md`.
+Before marking any task complete, evaluate it against `docs/quality/criteria.md`.
 
 ## Criteria Maintenance
 After evaluation:
@@ -10,7 +10,7 @@ After evaluation:
 - If a criterion never triggers after 10+ evaluations, suggest pruning it.
 - If you find a new failure pattern, flag it and propose a new criterion; do not add it silently.
 
-## If `quality/criteria.md` Is Missing
+## If `docs/quality/criteria.md` Is Missing
 - Create it with initial criteria based on the project domain and current standards.
 - Ask the user to review the initial criteria.
 
@@ -29,7 +29,7 @@ Do not run a full system review automatically. Suggest one when **any** of these
 - A decision record is superseded.
 
 Suggested review scope:
-- Prune stale rules in `knowledge/` that have not been applied in 30+ days.
+- Prune stale rules in `docs/knowledge/` that have not been applied in 30+ days.
 - Check whether any hypothesis has enough evidence to promote or enough contradictions to discard.
 - Review decision outcomes and whether their trade-offs played out as expected.
 - Evaluate quality criteria: promote frequent triggers and flag never-triggered criteria for pruning.

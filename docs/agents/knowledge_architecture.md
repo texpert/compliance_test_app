@@ -1,15 +1,15 @@
 # Knowledge Architecture
 
 ## Before Starting a Task
-- Review existing domain rules and hypotheses in `knowledge/` before starting a new task.
+- Review existing domain rules and hypotheses in `docs/knowledge/` before starting a new task.
 - Apply rules by default.
 - Check whether today's work can confirm or contradict any hypothesis.
 
 ## Storage Model
-Use domain folders under `knowledge/`, for example:
-- `knowledge/salt_edge_ais/`
-- `knowledge/onboarding/`
-- `knowledge/competitors/`
+Use domain folders under `docs/knowledge/`, for example:
+- `docs/knowledge/salt_edge_ais/`
+- `docs/knowledge/onboarding/`
+- `docs/knowledge/competitors/`
 
 Each domain folder should contain:
 - `knowledge.md` — facts, observations, patterns
@@ -17,7 +17,7 @@ Each domain folder should contain:
 - `rules.md` — confirmed patterns to apply by default
 
 ## Index
-- Maintain `knowledge/INDEX.md` as the router to active domain folders.
+- Maintain `docs/knowledge/INDEX.md` as the router to active domain folders.
 - Create a new domain entry in the index whenever a new knowledge folder is added.
 
 ## Promotion / Demotion Rules

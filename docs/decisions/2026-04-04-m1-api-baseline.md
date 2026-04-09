@@ -16,7 +16,7 @@ SCA UX, exact callback params) is not available at this stage.
 Treat the Berlin Group NextGenPSD2 XS2A Framework 1.3.x specification as confirmed ground truth
 for all standard endpoints, mandatory headers, body shapes, signing algorithm, and error codes.
 Flag all Salt Edge / Artea sandbox-specific values as **"verify in portal"** rather than
-speculating, and record them as hypotheses in `knowledge/salt_edge_ais/hypotheses.md`.
+speculating, and record them as hypotheses in `docs/knowledge/salt_edge_ais/hypotheses.md`.
 
 ## Rationale
 
@@ -33,7 +33,7 @@ speculating, and record them as hypotheses in `knowledge/salt_edge_ais/hypothese
 - `docs/tpp_discovery_notes.md` and `docs/ais_api_checklist.md` are actionable for M2 and M3 prep
   but carry explicit "verify in portal" flags on sandbox-specific items.
 - Before starting M4 (Rails implementation), all open hypotheses in
-  `knowledge/salt_edge_ais/hypotheses.md` must be resolved and their answers back-propagated into
+  `docs/knowledge/salt_edge_ais/hypotheses.md` must be resolved and their answers back-propagated into
   the discovery notes, checklist, and knowledge files.
 - Any discrepancy found during portal verification must be recorded in
   `docs/inconsistencies_and_errors.md`.

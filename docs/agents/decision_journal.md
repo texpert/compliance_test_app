@@ -1,7 +1,7 @@
 # Decision Journal
 
 ## Before Making a Lasting Decision
-- If a decision affects more than today's task, search `decisions/` for prior decisions in that area first.
+- If a decision affects more than today's task, search `docs/decisions/` for prior decisions in that area first.
 - Follow existing decisions unless new information invalidates their reasoning.
 
 ## When to Log a New Decision
@@ -11,7 +11,7 @@ Log a decision when:
 
 ## File Naming
 Create files as:
-- `decisions/YYYY-MM-DD-{topic}.md`
+- `docs/decisions/YYYY-MM-DD-{topic}.md`
 
 ## Format Options
 
