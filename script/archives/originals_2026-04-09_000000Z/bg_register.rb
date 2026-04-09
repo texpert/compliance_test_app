@@ -17,8 +17,8 @@ CONTACT_EMAIL = "constantink+bnm_test@saltedge.com"
 ####################################################
 
 class SignatureHelper
-  REQUIRED_HEADERS    = %w(Digest Date X-Request-ID)
-  CONDITIONAL_HEADERS = %w(Psu-ID Psu-Corporate-ID TPP-Redirect-URI)
+  REQUIRED_HEADERS    = %w[Digest Date X-Request-ID]
+  CONDITIONAL_HEADERS = %w[Psu-ID Psu-Corporate-ID TPP-Redirect-URI]
 
   attr_reader :certificate, :private_key, :headers, :body
 
