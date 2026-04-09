@@ -48,6 +48,8 @@ bin/rspec
 - QSEAL runbook: `docs/qseal_generation_runbook.md`
 - Local QSEAL storage policy: `docs/local_qseal_storage.md`
 - TPP registration log: `docs/tpp_registration_log.md`
+- Priora API changelog: `docs/priora_api_changelog.md`
+- Script helpers (register/verifier troubleshooting): `script/README.md`
 - AIS flow sequence: `docs/ais_flow_sequence.md`
 - Functional diagram notes: `docs/functional_diagram.md`
 - Diagram source: `docs/diagrams/open_banking_system.drawio`

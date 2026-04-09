@@ -9,6 +9,9 @@
 .env.*
 !.env.example
 
+# Local secrets folder (gitignored)
+/secrets/
+
 # Certificates and secrets
 /config/certs/*
 *.pem
@@ -16,7 +19,6 @@
 *.p12
 *.pfx
 *.csr
-*.crt
 *.srl
 
 # Rails runtime artifacts
