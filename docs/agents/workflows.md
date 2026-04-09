@@ -23,12 +23,21 @@ bin/rails db:prepare
 - Keep commits focused and reviewable.
 
 ## PR Description Rules
+- PR descriptions are mandatory; do not open or leave a PR with an empty description.
 - PR descriptions must summarize changes at a general level (what changed and why), not commit-by-commit.
+- PR descriptions must include: scope summary, reason/rationale, and explicit follow-up scope if work is split across PRs.
 - PR descriptions must include one sentence on user-visible impact (or explicitly state there is no user-visible impact).
 - PR descriptions must not include a `Files Changed` section.
 - PR descriptions must not include test example/failure counts.
 - PR descriptions must not describe how verification was performed (commands run, environments used, or step-by-step validation details).
 - PR descriptions must not reference commit SHAs or commit history in the description.
+
+## Commit Message Rules
+- Commit messages are mandatory and must be descriptive enough to explain intent, not just file movement.
+- Use concise conventional prefixes where possible (for example: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`).
+- Commit messages must describe the behavior or policy change, not implementation trivia.
+- Do not use placeholder commit messages (for example: `update`, `wip`, `fix stuff`, `misc`).
+- Before finalizing any commit message, ensure it matches the scope of the staged diff.
 
 ## Task Start / Finish Checklist
 - Before starting a new domain task, review relevant files from `docs/knowledge/` and prior records in `docs/decisions/`.

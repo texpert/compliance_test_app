@@ -20,6 +20,7 @@ In `config/application.rb`, keep these commented out unless a task explicitly ne
 ## Repo Rules
 - Follow [secrets.md](./secrets.md) for what counts as a secret and how to handle it.
 - Run `bin/rubocop` before every commit; do not commit if any offenses are reported.
+- Follow [workflows.md](./workflows.md) commit and PR description rules for every commit and every PR update.
 
 ## Documentation Rules
 - Keep runnable commands in `README.md` aligned with actual scripts/binaries.
