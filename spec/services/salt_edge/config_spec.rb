@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
 
 RSpec.describe SaltEdge::Config do
   # Full set of env values used across examples.

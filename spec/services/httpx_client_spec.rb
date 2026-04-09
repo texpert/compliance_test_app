@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
 
 RSpec.describe HttpxClient do
   RequestStruct = Struct.new(:verb, :uri, :headers, :body)
