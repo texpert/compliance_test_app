@@ -35,7 +35,7 @@ The implementation must prioritize traceability, sanitized logging, and testabil
 - [ ] Freeze callback contract (`state`, expected params, success/failure branching)
 - [ ] Record unresolved sandbox mismatches in `docs/inconsistencies_and_errors.md`
 
-### Phase 2: Dependency and Configuration Foundation
+### Phase 2: Dependency, Configuration, and Core Signing Foundation
 - [ ] Add `dotenv` support for local configuration (`gem "dotenv"`, dev/test)
 - [ ] Add `ngrok-wrapper` gem for local callback tunneling required by SCA redirects
   - [ ] Gem source in `Gemfile`: `gem "ngrok-wrapper"`
@@ -49,13 +49,13 @@ The implementation must prioritize traceability, sanitized logging, and testabil
 - [ ] Apply namespacing only where domain-specific:
   - [ ] Keep universal `HttpxClient` un-namespaced
   - [ ] Use `SaltEdge` namespace for integration services (`SaltEdge::ConsentService`, `SaltEdge::AccountsService`, etc.)
+- [ ] Implement `SaltEdge::Config` for strict environment validation (based on `anyway_config` gem)
+- [ ] Implement signing helper (`SaltEdge::SignatureBuilder`) for digest/signature/header canonicalization
 - [ ] Add or refresh `.env.example` with `SE_*` variables and safe placeholders
 - [ ] Extend filtering in `config/initializers/filter_parameter_logging.rb` for secrets/signatures/certs
 
 ### Phase 3: Service Layer
-- [ ] Implement `SaltEdge::Config` for strict environment validation (based on `anyway_config` gem)
-- [ ] Implement signing helper (digest/signature/header canonicalization)
-- [ ] Implement Salt Edge HTTP wrapper with timeout/error normalization
+- [ ] Implement Salt Edge request adapter on top of `HttpxClient` with timeout/error normalization
 - [ ] Implement AIS services:
   - [ ] `SaltEdge::ConsentService`
   - [ ] `SaltEdge::ConsentStatusService`
