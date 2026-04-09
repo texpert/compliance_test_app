@@ -1,0 +1,8 @@
+paths-to-ignore:
+  - '.env.example'
+  - 'docs/**'
+  - 'spec/**'
+  - '**/*spec.rb'
+
+secret-names-to-ignore: []
+secret-types-to-ignore: []

@@ -56,6 +56,11 @@ bin/rspec
 - AIS evidence log: `docs/ais_flow_evidence.md`
 - Inconsistencies/errors log: `docs/inconsistencies_and_errors.md`
 
+## Milestone 4 (AIS Flow) Index
+- Detailed implementation plan: `docs/milestone_4_ais_implementation_plan.md`
+- Execution trace template and run notes: `docs/ais_flow_sequence.md`
+- Master milestone tracking: `docs/salt_edge_compliance_plan.md`
+
 ## Environment Variables
 Copy `.env.example` to `.env` and fill the `SE_*` values required for sandbox integration.
 

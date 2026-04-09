@@ -75,6 +75,9 @@ Status (2026-04-09): API submission accepted, async validation pending
   - [ais_flow_sequence.md](ais_flow_sequence.md) (step-by-step with request/response notes)
 - Exit criteria: one repeatable happy path from consent creation to transactions fetch.
 
+Status (2026-04-09): Planning completed, implementation pending
+- Detailed execution plan: [milestone_4_ais_implementation_plan.md](milestone_4_ais_implementation_plan.md)
+
 ### 5) Produce High-Level Functional Diagram
 - Create a system diagram covering actors: PSU, TPP, ASPSP, IDS.
 - Include functional blocks: consent management, account services, TPP certificate verification, ASPSP reports, ASPSP dashboard, sandbox management.
