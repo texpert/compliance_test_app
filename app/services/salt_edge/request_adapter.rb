@@ -19,8 +19,15 @@ module SaltEdge
       merged_headers = signed_headers.merge(headers)
 
       response = @client
-                 .with(timeout: timeout || @config.http_timeout)
-                 .public_send(method_name, build_url(path), request_options(body_json, merged_headers))
+                 .with(timeout: timeout_options(timeout || @config.http_timeout))
+                 .public_send(method_name, build_url(path), **request_options(body_json, merged_headers))
+
+      if response.is_a?(HTTPX::ErrorResponse)
+        return SaltEdge::RequestResult.new(
+          status: nil,
+          error: SaltEdge::RequestError.new("Salt Edge request failed: #{response.error.message}")
+        )
+      end
 
       if response.status.between?(200, 299)
         return SaltEdge::RequestResult.new(status: response.status, data: parse_json_body(response.body.to_s))
@@ -32,6 +39,10 @@ module SaltEdge
     end
 
     private
+
+    def timeout_options(seconds)
+      { operation_timeout: seconds }
+    end
 
     def request_options(body_json, headers)
       return { headers: headers } if body_json.empty?

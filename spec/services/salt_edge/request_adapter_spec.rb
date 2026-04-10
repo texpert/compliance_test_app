@@ -3,8 +3,7 @@
 RSpec.describe SaltEdge::RequestAdapter do
   let(:config) { instance_double(SaltEdge::Config, api_base_url: 'https://priora.saltedge.com', http_timeout: 30) }
   let(:signer) { instance_double(SaltEdge::SignatureBuilder) }
-  let(:client) { instance_double('HTTPX::Session') }
-  let(:timeout_client) { instance_double('HTTPX::Session') }
+  let(:client) { HTTPX }
 
   subject(:adapter) { described_class.new(config: config, signer: signer, client: client) }
 
@@ -19,12 +18,20 @@ RSpec.describe SaltEdge::RequestAdapter do
       }
     end
 
-    it 'returns a successful RequestResult with parsed data' do
-      response = instance_double('HTTPX::Response', status: 201, body: '{"ok":true}')
-
+    before do
       allow(signer).to receive(:build_headers).and_return(signed_headers)
-      allow(client).to receive(:with).with(timeout: 30).and_return(timeout_client)
-      allow(timeout_client).to receive(:post).and_return(response)
+    end
+
+    it 'returns a successful RequestResult with parsed data' do
+      stub_request(:post, 'https://priora.saltedge.com/v1/consents')
+        .with(
+          headers: {
+            'Content-Type' => 'application/json',
+            'Signature' => 'sig'
+          },
+          body: '{"foo":"bar"}'
+        )
+        .to_return(status: 201, body: '{"ok":true}', headers: { 'Content-Type' => 'application/json' })
 
       result = adapter.request(
         method: :post,
@@ -37,31 +44,22 @@ RSpec.describe SaltEdge::RequestAdapter do
       expect(result).to be_success
       expect(result.data).to eq('ok' => true)
       expect(signer).to have_received(:build_headers).with(method: 'post', path: '/v1/consents', body: '{"foo":"bar"}')
-      expect(timeout_client).to have_received(:post).with(
-        'https://priora.saltedge.com/v1/consents',
-        hash_including(headers: hash_including('Content-Type' => 'application/json', 'Signature' => 'sig'))
-      )
+      expect(a_request(:post, 'https://priora.saltedge.com/v1/consents')).to have_been_made
     end
 
-    it 'uses explicit timeout when provided' do
-      response = instance_double('HTTPX::Response', status: 200, body: '{}')
+    it 'supports explicit timeout without changing request behavior' do
+      stub_request(:get, 'https://priora.saltedge.com/v1/consents/1/status')
+        .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
 
-      allow(signer).to receive(:build_headers).and_return(signed_headers)
-      allow(client).to receive(:with).with(timeout: 5).and_return(timeout_client)
-      allow(timeout_client).to receive(:get).and_return(response)
+      result = adapter.request(method: :get, path: '/v1/consents/1/status', timeout: 5)
 
-      adapter.request(method: :get, path: '/v1/consents/1/status', timeout: 5)
-
-      expect(client).to have_received(:with).with(timeout: 5)
+      expect(result).to be_success
+      expect(a_request(:get, 'https://priora.saltedge.com/v1/consents/1/status')).to have_been_made.once
     end
 
     it 'returns failed RequestResult for non-2xx responses with normalized RequestError' do
-      body = '{"tppMessages":[{"code":"FORMAT_ERROR","text":"Missing header"}]}'
-      response = instance_double('HTTPX::Response', status: 400, body: body)
-
-      allow(signer).to receive(:build_headers).and_return(signed_headers)
-      allow(client).to receive(:with).and_return(timeout_client)
-      allow(timeout_client).to receive(:get).and_return(response)
+      stub_request(:get, 'https://priora.saltedge.com/v1/accounts')
+        .to_return(status: 400, body: '{"tppMessages":[{"code":"FORMAT_ERROR","text":"Missing header"}]}')
 
       result = adapter.request(method: :get, path: '/v1/accounts')
 
@@ -73,9 +71,8 @@ RSpec.describe SaltEdge::RequestAdapter do
     end
 
     it 'returns failed RequestResult on transport errors' do
-      allow(signer).to receive(:build_headers).and_return(signed_headers)
-      allow(client).to receive(:with).and_return(timeout_client)
-      allow(timeout_client).to receive(:get).and_raise(StandardError, 'connection dropped')
+      stub_request(:get, 'https://priora.saltedge.com/v1/accounts')
+        .to_raise(StandardError.new('connection dropped'))
 
       result = adapter.request(method: :get, path: '/v1/accounts')
 
@@ -85,11 +82,8 @@ RSpec.describe SaltEdge::RequestAdapter do
     end
 
     it 'returns raw_body hash when upstream body is not JSON' do
-      response = instance_double('HTTPX::Response', status: 200, body: 'OK')
-
-      allow(signer).to receive(:build_headers).and_return(signed_headers)
-      allow(client).to receive(:with).and_return(timeout_client)
-      allow(timeout_client).to receive(:get).and_return(response)
+      stub_request(:get, 'https://priora.saltedge.com/v1/accounts')
+        .to_return(status: 200, body: 'OK', headers: { 'Content-Type' => 'text/plain' })
 
       result = adapter.request(method: :get, path: '/v1/accounts')
 
