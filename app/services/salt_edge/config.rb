@@ -6,8 +6,7 @@ module SaltEdge
   # Reads environment variables prefixed with SE_:
   #   SE_API_BASE_URL, SE_QSEAL_CERT_PATH, SE_QSEAL_KEY_PATH,
   #   SE_CALLBACK_BASE_URL, SE_REDIRECT_URI, SE_CLIENT_ID,
-  #   SE_CLIENT_SECRET, SE_QSEAL_KEY_PASSPHRASE, SE_HTTP_TIMEOUT_SECONDS,
-  #   SE_PSU_IP_ADDRESS
+  #   SE_CLIENT_SECRET, SE_QSEAL_KEY_PASSPHRASE, SE_PSU_IP_ADDRESS
   #
   # Usage:
   #   cfg = SaltEdge::Config.new

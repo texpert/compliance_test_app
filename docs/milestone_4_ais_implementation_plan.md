@@ -182,3 +182,6 @@ The implementation must prioritize traceability, sanitized logging, and testabil
 - `ngrok-wrapper` is mandatory in dependencies, but tunnel runtime behavior is optional and env-controlled
 - Follow `/Users/Shared/dev/ruby/rails_6_rss_reader/` env naming for tunnel control: `NGROK_TUNNEL`, `NGROK_CONFIG`, `NGROK_INSPECT`
 - Keep tunnel disabled by default (`NGROK_TUNNEL=false`) to preserve deterministic local startup
+- Use SHA-256 certificate fingerprint for `Signature` `keyId` generation in `SaltEdge::SignatureBuilder`
+- Use `/v1/...` endpoint paths as canonical request-path baseline and validate against live sandbox behavior
+- `SaltEdge::RequestAdapter` returns a Result object (`SaltEdge::RequestResult`) instead of raising by default

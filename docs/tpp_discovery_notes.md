@@ -41,8 +41,8 @@ All TLS 1.2 suites are `ECDHE-RSA-*` — RSA keys are used for authentication on
   - `Signature` — HTTP Signature per draft-cavage-http-signatures-12; format: `keyId="<hex-sha256-fingerprint>",algorithm="rsa-sha256",headers="(request-target) date x-request-id digest",signature="<base64>"`
   - `TPP-Signature-Certificate` — Base64-encoded QSEAL certificate PEM (without `-----BEGIN/END CERTIFICATE-----` delimiters)
   - `PSU-IP-Address` — IP address of the PSU's device _(⚠️ verify if enforced in sandbox)_
+  - `TPP-Redirect-Preferred` — `"true"` to signal redirect-based SCA preference (required on consent creation)
   - `TPP-Redirect-URI` — Full callback URL for successful SCA
-  - `TPP-Nok-Redirect-URI` — Full callback URL for failed/cancelled SCA _(⚠️ verify if mandatory in sandbox)_
 - Required header (account/balance/transaction calls):
   - `Consent-ID` — `consentId` value returned from consent creation
 - Signature method: `rsa-sha256` (RSA PKCS#1 v1.5 with SHA-256); EC alternative `ecdsa-sha256` also allowed by spec
@@ -68,7 +68,6 @@ All TLS 1.2 suites are `ECDHE-RSA-*` — RSA keys are used for authentication on
 - Exact base URL: is it `/v1/` or `/v2/`? Verify in Salt Edge Berlingroup portal intro.
 - SCA in sandbox: does Artea auto-approve SCA or require test PSU credentials? If credentials needed, where are they documented?
 - Post-SCA callback params: does Salt Edge return only `state`, or also `code`? Is the consent status change synchronous?
-- Is `TPP-Nok-Redirect-URI` mandatory in sandbox or optional?
 - Is `PSU-IP-Address` validated or just logged in sandbox?
 - Does the Artea sandbox enforce certificate chain validation or accept self-signed?
 
