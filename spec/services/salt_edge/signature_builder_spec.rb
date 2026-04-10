@@ -158,11 +158,11 @@ RSpec.describe SaltEdge::SignatureBuilder do
   end
 
   describe '#certificate_fingerprint' do
-    it 'returns a hex-formatted SHA-1 fingerprint' do
+    it 'returns a hex-formatted SHA-256 fingerprint' do
       fingerprint = builder.send(:certificate_fingerprint)
       expect(fingerprint).to be_a(String)
-      # SHA-1 fingerprint should be 40 hex chars (160 bits / 4)
-      expect(fingerprint).to match(/^[a-f0-9]{40}$/)
+      # SHA-256 fingerprint should be 64 hex chars (256 bits / 4)
+      expect(fingerprint).to match(/^[a-f0-9]{64}$/)
     end
 
     it 'returns consistent fingerprint on multiple calls' do

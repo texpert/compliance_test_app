@@ -92,11 +92,11 @@ module SaltEdge
       OpenSSL::PKey::RSA.new(key_pem, config.qseal_key_passphrase)
     end
 
-    # Compute the SHA-1 fingerprint of the certificate (hex format).
+    # Compute the SHA-256 fingerprint of the certificate (hex format).
     def certificate_fingerprint
       cert_pem = File.read(config.qseal_cert_path)
       cert = OpenSSL::X509::Certificate.new(cert_pem)
-      digest = OpenSSL::Digest.new('SHA1')
+      digest = OpenSSL::Digest.new('SHA256')
       fingerprint = digest.digest(cert.to_der)
       fingerprint.unpack1('H*')
     end
