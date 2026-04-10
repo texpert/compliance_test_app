@@ -14,3 +14,6 @@ AllCops:
 # Overwrite or add rules to create your own house style
 Style/StringLiterals:
   EnforcedStyle: single_quotes
+
+Layout/SpaceInsideArrayLiteralBrackets:
+  EnforcedStyle: no_space
