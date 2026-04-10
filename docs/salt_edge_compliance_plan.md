@@ -1,14 +1,14 @@
 # Salt Edge Compliance Test Task Plan
 
 ## Goal
-Deliver a Rails demo integration that simulates a simple AIS flow against Salt Edge TPP sandbox, plus evidence artifacts (screenshots/video), public code repository, a high-level functional diagram, and a list of documentation/journey inconsistencies.
+Deliver a Rails demo integration that simulates a simple AIS (Account Information Services) flow against the Salt Edge TPP (Third-Party Provider) sandbox, plus evidence artifacts (screenshots/video), public code repository, a high-level functional diagram, and a list of documentation/journey inconsistencies.
 
 ## Stack and Scope Assumptions
 - Framework: Ruby on Rails.
 - HTTP client for external requests: `httpx` gem.
-- Use `ngrok-wrapper` gem in local/sandbox runs to expose a temporary external callback URL for SCA redirects.
+- Use `ngrok-wrapper` gem in local/sandbox runs to expose a temporary external callback URL for SCA (Strong Customer Authentication) redirects.
 - Persistence: start minimal; introduce PostgreSQL only if needed for callback state, consent tracking, or reproducible audit logs.
-- Environment target: Salt Edge Berlingroup Artea sandbox docs and TPP journey.
+- Environment target: Salt Edge Berlin Group Artea sandbox docs and TPP journey.
 
 ## Work Plan (Milestones + Deliverables)
 
@@ -26,7 +26,7 @@ Deliver a Rails demo integration that simulates a simple AIS flow against Salt E
   - [ais_api_checklist.md](ais_api_checklist.md) (endpoint + method + mandatory headers + expected responses)
 - Exit criteria: all AIS happy-path calls and redirects are mapped end-to-end.
 
-### 2) Generate Test eIDAS QSEAL Certificates
+### 2) Generate Test eIDAS (electronic IDentification, Authentication and trust Services) QSEAL (Qualified Electronic Seal) Certificates
 - Follow [certificate_generation_guide.md](certificate_generation_guide.md) to generate sandbox-compatible QSEAL assets.
 - Record certificate metadata and usage notes without storing sensitive private keys in repo.
 - Run TPP Verifier check with PEM certificate string and valid verifier credentials.
@@ -48,7 +48,7 @@ Deliver a Rails demo integration that simulates a simple AIS flow against Salt E
 
 ### 3) Register TPP in Salt Edge Sandbox
 - Complete TPP registration using generated test certificates.
-- Configure redirect URI(s) for Rails app callback route(s).
+- Configure redirect URI values for Rails app callback route(s).
 - Confirm whether OAuth credentials for AIS flow are distinct from verifier client credentials, and document both.
 - Deliverables:
   - [tpp_registration_log.md](tpp_registration_log.md)
@@ -63,8 +63,8 @@ Status (2026-04-09): API submission accepted, async validation pending
 ### 4) Build Rails Demo App for AIS Flow
 - Implement minimal user journey:
   - 4.1 Create consent
-  - 4.2 Redirect PSU to SCA
-  - 4.3 Simulate/pass SCA in sandbox
+  - 4.2 Redirect PSU (Payment Service User) to SCA
+  - 4.3 PSU completes SCA in sandbox
   - 4.4 Handle redirect back/callback
   - 4.5 Fetch accounts and transactions
 - Use service objects for external API interactions via `httpx` (e.g., `ConsentService`, `AccountsService`, `TransactionsService`).
@@ -79,7 +79,7 @@ Status (2026-04-09): Planning completed, implementation pending
 - Detailed execution plan: [milestone_4_ais_implementation_plan.md](milestone_4_ais_implementation_plan.md)
 
 ### 5) Produce High-Level Functional Diagram
-- Create a system diagram covering actors: PSU, TPP, ASPSP, IDS.
+- Create a system diagram covering actors: PSU, TPP, ASPSP (Account Servicing Payment Service Provider), IDS (Salt Edge internal actor term; confirm exact expansion in portal docs).
 - Include functional blocks: consent management, account services, TPP certificate verification, ASPSP reports, ASPSP dashboard, sandbox management.
 - Deliverables:
   - [functional_diagram.md](functional_diagram.md)

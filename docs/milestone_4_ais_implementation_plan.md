@@ -32,6 +32,7 @@ The implementation must prioritize traceability, sanitized logging, and testabil
 
 ### Phase 1: Contract Freeze and Unknowns
 - [ ] Reconfirm endpoint/header contract in `docs/tpp_discovery_notes.md` and `docs/ais_api_checklist.md`
+- [ ] Capture canonical TPP/PSU/ASPSP SCA workflow in `docs/knowledge/salt_edge_ais/knowledge.md` and align terms across AIS docs
 - [ ] Freeze callback contract (`state`, expected params, success/failure branching)
 - [ ] Record unresolved sandbox mismatches in `docs/inconsistencies_and_errors.md`
 

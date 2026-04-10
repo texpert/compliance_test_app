@@ -45,7 +45,7 @@ Upgraded Connector & Salt Edge callback endpoints in accordance with RESTful API
 
 ### AIS API Checklist ([ais_api_checklist.md](ais_api_checklist.md))
 - The checklist uses Berlin Group XS2A endpoints (`/v1/consents`, `/v1/accounts`, etc.) — these are **ASPSP-facing Berlin Group standard endpoints**, not Priora internal endpoints. The `/v1/` in `POST /v1/consents` refers to the Berlin Group API version prefix, not the Priora connector version. These remain unchanged.
-- ⚠️ `tpp_discovery_notes.md` base URL uses `berlingroup/v2/` while the checklist uses `/v1/` endpoint paths — this discrepancy needs resolving against the actual Artea sandbox portal URL.
+- ✅ Version split confirmed: use `berlingroup/v1` for Berlin Group SCA/AIS endpoints, and use Priora `v2` endpoints only for OAuth/session-token flows.
 
 ### Session/Token Flow
 - If our app ever calls `sessions/success`, `sessions/fail`, or `sessions/update` back to Priora (e.g. for OAuth callback handling), it **must** use the `v2` PATCH endpoints and the updated body shape.
