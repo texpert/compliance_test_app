@@ -81,6 +81,7 @@ RSpec.describe SaltEdge::Config do
       expect(config.client_id).to be_nil
     end
 
+
     it 'defaults client_secret to nil' do
       expect(config.client_secret).to be_nil
     end
@@ -104,6 +105,7 @@ RSpec.describe SaltEdge::Config do
       config = build_config('SE_CLIENT_SECRET' => 'test-client-secret')
       expect(config.client_secret).to eq('test-client-secret')
     end
+
 
     it 'reads qseal_key_passphrase from SE_QSEAL_KEY_PASSPHRASE when set' do
       config = build_config('SE_QSEAL_KEY_PASSPHRASE' => 'test-passphrase-placeholder')
