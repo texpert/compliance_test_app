@@ -1,0 +1,6 @@
+{
+  "accounts": [
+    { "resourceId": "acc-001", "iban": "DE00123456789", "currency": "EUR", "name": "Checking" },
+    { "resourceId": "acc-002", "iban": "DE00987654321", "currency": "EUR", "name": "Savings" }
+  ]
+}

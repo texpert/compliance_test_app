@@ -1,0 +1,8 @@
+{
+  "transactions": {
+    "booked": [
+      { "bookingDate": "2026-01-15", "transactionId": "tx-1", "transactionAmount": { "amount": "-42.00", "currency": "EUR" }, "description": "Grocery" }
+    ],
+    "pending": []
+  }
+}
