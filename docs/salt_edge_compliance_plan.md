@@ -66,14 +66,19 @@ Status (2026-04-09): API submission accepted, async validation pending
   - 4.2 Redirect PSU (Payment Service User) to SCA
   - 4.3 PSU completes SCA in sandbox
   - 4.4 Handle redirect back/callback
-  - 4.5 Fetch accounts and transactions
+  - 4.5 Provide endpoints to fetch accounts and transactions (manual action; callbacks do not auto-fetch data)
 - Use service objects for external API interactions via `httpx` (e.g., `ConsentService`, `AccountsService`, `TransactionsService`).
-- Keep UI simple (single flow page + result pages); focus on compliance journey traceability.
+- Keep UI focused and explicit: provide a "Create consent" action (button) that navigates to a consent show page. The consent show page should expose explicit actions (buttons) to "Fetch accounts" and "Fetch transactions". This makes the flow operator-driven and avoids automatic data retrieval during callback handling.
+
+  Consider using ActiveAdmin for the demo admin UI:
+  - Pros: very fast to scaffold an admin interface, provides resource listing, show pages and action buttons out of the box, RBAC and filters for demo inspection.
+  - Cons: adds a dependency and a different UI stack (admin-focused) rather than a lightweight custom page. May be overkill if you prefer a tiny bespoke UI.
+  Recommendation: Use ActiveAdmin for rapid iteration and demoing (especially useful for reviewers), or implement minimal custom pages if you want zero extra dependencies.
 - Add lightweight request/flow logging (sanitize secrets).
 - Deliverables:
   - runnable Rails app code
   - [ais_flow_sequence.md](ais_flow_sequence.md) (step-by-step with request/response notes)
-- Exit criteria: one repeatable happy path from consent creation to transactions fetch.
+- Exit criteria: one repeatable happy path from consent creation to availability of endpoints to retrieve accounts and transactions (fetching is manual and must be triggered explicitly).
 
 Status (2026-04-09): Planning completed, implementation pending
 - Detailed execution plan: [milestone_4_ais_implementation_plan.md](milestone_4_ais_implementation_plan.md)

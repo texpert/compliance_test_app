@@ -8,6 +8,11 @@
 ## Test Conventions
 - Require `rails_helper` centrally in `spec/spec_helper.rb`.
 - Do not add `require 'rails_helper'` in individual spec files unless a one-off exception is explicitly justified.
+- Treat per-file `require 'rails_helper'` as a regression unless explicitly approved.
+
+## Runtime Conventions (Strong)
+- Prefer `Time.now.utc` over `Time.current` for persisted flow/audit timestamps to avoid timezone drift across environments.
+- Prefer non-exception control flow in application logic (`find_by` + explicit handling) over exception-driven flow (`find`/`find_by!`) unless raising is part of the contract.
 
 ## Framework Scope (Intentionally Disabled)
 In `config/application.rb`, keep these commented out unless a task explicitly needs them:
