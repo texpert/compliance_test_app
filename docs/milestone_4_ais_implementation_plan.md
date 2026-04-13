@@ -38,23 +38,23 @@ The implementation must prioritize traceability, sanitized logging, and testabil
 - [ ] Record unresolved sandbox mismatches in `docs/inconsistencies_and_errors.md`
 
 ### Phase 2: Dependency, Configuration, and Core Signing Foundation
-- [ ] Add `dotenv` support for local configuration (`gem "dotenv"`, dev/test)
-- [ ] Add `ngrok-wrapper` gem for local callback tunneling required by SCA redirects
-  - [ ] Gem source in `Gemfile`: `gem "ngrok-wrapper"`
-  - [ ] Upstream repository: https://github.com/texpert/ngrok-wrapper
-  - [ ] Local checkout: `/Users/Shared/dev/ruby/ngrok-wrapper/`
-  - [ ] Integration pattern reference: `/Users/Shared/dev/ruby/rails_6_rss_reader/`
-  - [ ] Env-toggle contract from reference implementation: `NGROK_TUNNEL` (`true` enables tunnel)
-  - [ ] Optional ngrok config path env: `NGROK_CONFIG` (default `~/.ngrok2/ngrok.yml`)
-  - [ ] Optional ngrok inspector env: `NGROK_INSPECT` (`true` enables local inspector)
-- [ ] Enforce a shared `httpx`-based `HttpxClient` implementation using `Rails.logger` for all logging
-- [ ] Apply namespacing only where domain-specific:
-  - [ ] Keep universal `HttpxClient` un-namespaced
-  - [ ] Use `SaltEdge` namespace for integration services (`SaltEdge::ConsentService`, `SaltEdge::AccountsService`, etc.)
-- [ ] Implement `SaltEdge::Config` for strict environment validation (based on `anyway_config` gem)
-- [ ] Implement signing helper (`SaltEdge::SignatureBuilder`) for digest/signature/header canonicalization
-- [ ] Add or refresh `.env.example` with `SE_*` variables and safe placeholders
-- [ ] Extend filtering in `config/initializers/filter_parameter_logging.rb` for secrets/signatures/certs
+- [x] Add `dotenv` support for local configuration (`gem "dotenv"`, dev/test) *(PR #14)*
+- [x] Add `ngrok-wrapper` gem for local callback tunneling required by SCA redirects *(PR #14)*
+  - [x] Gem source in `Gemfile`: `gem "ngrok-wrapper"`
+  - [x] Upstream repository: https://github.com/texpert/ngrok-wrapper
+  - [x] Local checkout: `/Users/Shared/dev/ruby/ngrok-wrapper/`
+  - [x] Integration pattern reference: `/Users/Shared/dev/ruby/rails_6_rss_reader/`
+  - [x] Env-toggle contract from reference implementation: `NGROK_TUNNEL` (`true` enables tunnel)
+  - [x] Optional ngrok config path env: `NGROK_CONFIG` (default `~/.ngrok2/ngrok.yml`)
+  - [x] Optional ngrok inspector env: `NGROK_INSPECT` (`true` enables local inspector)
+- [x] Enforce a shared `httpx`-based `HttpxClient` implementation using `Rails.logger` for all logging *(PR #14)*
+- [x] Apply namespacing only where domain-specific: *(PR #14, #17)*
+  - [x] Keep universal `HttpxClient` un-namespaced
+  - [x] Use `SaltEdge` namespace for integration services (`SaltEdge::ConsentService`, `SaltEdge::AccountsService`, etc.)
+- [x] Implement `SaltEdge::Config` for strict environment validation (based on `anyway_config` gem) *(PR #14)*
+- [x] Implement signing helper (`SaltEdge::SignatureBuilder`) for digest/signature/header canonicalization *(PR #14)*
+- [x] Add or refresh `.env.example` with `SE_*` variables and safe placeholders *(PR #14)*
+- [x] Extend filtering in `config/initializers/filter_parameter_logging.rb` for secrets/signatures/certs *(PR #14)*
 
 #### Localhost tunneling with `ngrok-wrapper`
 
@@ -106,59 +106,85 @@ bin/rails server
   - The initializer above is intentionally minimal — the reference implementation in `/Users/Shared/dev/ruby/rails_6_rss_reader/` provides a production-quality pattern; copy specifics if needed.
 
 ### Phase 3: Service Layer
-- [ ] Implement Salt Edge request adapter on top of `HttpxClient` with timeout/error normalization
-- [ ] Implement AIS services:
-  - [ ] `SaltEdge::ConsentService`
+- [x] Implement Salt Edge request adapter on top of `HttpxClient` with timeout/error normalization *(PR #17)*
+- [x] Implement AIS services: *(PR #17)*
+  - [x] `SaltEdge::ConsentService`
   - [ ] `SaltEdge::ConsentStatusService`
-  - [ ] `SaltEdge::AccountsService`
-  - [ ] `SaltEdge::TransactionsService`
+  - [x] `SaltEdge::AccountsService`
+  - [x] `SaltEdge::TransactionsService`
 
-### Phase 4: Web Flow and State Management
-- [ ] Add routes for start, callback, and result pages in `config/routes.rb`
-- [ ] Add thin orchestration controller(s) in `app/controllers/`
-- [ ] Rely on `Consent` and `Event` for state/audit.
-  - UI notes: Instead of a single flow page, provide a small admin-style interface:
-    - A top-level "Create consent" button that creates a local Consent and invokes the upstream create flow.
-    - A consent index and consent show page. The consent show page displays consent details and includes explicit action buttons: "Fetch accounts" and "Fetch transactions".
-    - These actions call the dedicated endpoints (or enqueue background jobs) and will produce `accounts_fetch` and `transactions_fetch` Events.
-    - This approach keeps callbacks focused on reconciliation and delegates heavier data fetching to operator-initiated or scheduled processes.
+### Phase 4: ActiveAdmin UI, Provider Management, and State Management
 
-  - UI implementation options:
-    - ActiveAdmin: recommended for rapid scaffolding of admin UI (resource listing, show pages, custom action items/buttons). Pros: fast to implement, batteries-included admin features. Cons: adds a dependency and admin UI conventions.
-    - Minimal custom UI: a few ERB/HAML pages with simple buttons and controllers. Pros: minimal dependencies, full control over UX. Cons: more implementation time.
+This phase uses **ActiveAdmin** (without user authentication/authorization) as the sole UI layer for testing purposes. There is no separate orchestration controller and no dedicated start, callback, or result pages — all operator interactions happen through ActiveAdmin.
 
-  - Accessibility and testing: ensure the consent show page exposes deterministic element IDs for E2E tests and simple curl examples for reviewers.
-- [ ] Enforce callback safety:
-  - [ ] Missing state rejected
-  - [ ] State mismatch rejected
-  - [ ] Replay on used state rejected
-  - [ ] Support multiple callback requests for the same Consent (e.g., `partiallyAuthorised` -> `valid`) and ensure replay detection distinguishes legitimate progression from duplicate replays
+- [ ] Add `gem "activeadmin"` (3.x) and `gem "dartsass-sprockets"` to `Gemfile`
+- [ ] Install ActiveAdmin without Devise (no authentication/authorization):
+  - [ ] Run `rails generate active_admin:install --skip-users`
+  - [ ] Ensure `config/initializers/active_admin.rb` sets `config.authentication_method = false` and `config.current_user_method = false`
+- [ ] Add `ngrok-wrapper` integration (see Phase 2) to provide a tunnel from localhost so the Salt Edge sandbox can deliver callback requests to the local dev server
+
+#### Provider pages and actions
+- [ ] Create an ActiveAdmin `Provider` resource page with custom action items:
+  - [ ] **Generate QSeal certificate** — action button that invokes the QSeal generation logic (see `docs/qseal_generation_runbook.md`) and displays/stores the result
+  - [ ] **Register Provider** — action button that calls the Salt Edge provider registration endpoint via `SaltEdge::ProviderRegistrationService` and records the outcome
+- [ ] Implement `SaltEdge::ProviderRegistrationService` for upstream provider registration
+- [ ] Implement QSeal certificate generation service (or wrap existing script logic) callable from the admin UI
+
+#### Consent pages and actions
+- [ ] Create an ActiveAdmin `Consent` resource with:
+  - [ ] Index page listing all consents
+  - [ ] Show page displaying consent details, status, and associated events
+  - [ ] "Create consent" action button that creates a local Consent and invokes the upstream create flow
+  - [ ] "Fetch accounts" action button on consent show page (calls `SaltEdge::AccountsService`, produces `accounts_fetch` Event)
+  - [ ] "Fetch transactions" action button on consent show page (calls `SaltEdge::TransactionsService`, produces `transactions_fetch` Event)
+- [ ] Create an ActiveAdmin `Event` resource (read-only index/show for audit trail)
+
+#### AIS workflow models and controllers (pre-ActiveAdmin)
+- [x] Create `Consent`, `Event`, and `Provider` models with AIS workflow migration *(PR #15)*
+- [x] Add AIS controllers: `AisConsentsController`, `AisAccountsController`, `AisTransactionsController`, `AisCallbacksController` *(PR #16)*
+- [x] Implement `AisCallbacks::CallbackProcessor` service with handler chain *(PR #16)*
+- [x] Add AIS routes for consents, accounts, transactions, and callback endpoints *(PR #18)*
+
+#### Callback handling
+- [x] Add callback endpoint route in `config/routes.rb` (outside ActiveAdmin, as a plain API endpoint) *(PR #18)*
+- [x] Enforce callback safety: *(PR #16)*
+  - [x] Missing state rejected
+  - [x] State mismatch rejected
+  - [x] Replay on used state rejected
+  - [x] Support multiple callback requests for the same Consent (e.g., `partiallyAuthorised` -> `valid`) and ensure replay detection distinguishes legitimate progression from duplicate replays
   - Note: the test-suite currently seeds a special Event with `event_type: 'replay_marker'` to simulate prior processing for replay-detection tests. There is no production code that automatically writes a `replay_marker` event today — replay markers are inserted by tests or by an external process. Accounts and transactions fetching is intentionally manual and must be triggered via the dedicated endpoints or background jobs; the callback handler only reconciles consent status. If you want automatic marking in production, add an idempotent write (for example: create a `replay_marker` after the first successful callback processing) and cover it with specs.
 
+#### Testing and accessibility
+- [ ] Ensure ActiveAdmin pages expose deterministic element IDs for E2E tests and simple curl examples for reviewers
+
 ### Phase 5: RSpec Coverage
-- [ ] Service specs for signing, headers, and response/error mapping
-- [ ] Request specs for end-to-end controller flow
-- [ ] Model specs for state uniqueness and transition validity
-- [ ] Failure/security scenarios:
-  - [ ] Invalid callback params
-  - [ ] State replay
-  - [ ] Consent not valid post-callback
+- [x] Service specs for signing, headers, and response/error mapping *(PR #14, #17)*
+- [x] Request specs for end-to-end controller flow *(PR #16)*
+- [x] Model specs for state uniqueness and transition validity *(PR #15)*
+- [x] Failure/security scenarios: *(PR #16)*
+  - [x] Invalid callback params
+  - [x] State replay
+  - [x] Consent not valid post-callback
   - [ ] Upstream timeout/error handling
 - [ ] Sanitization assertions for logs
 - Note: data-fetching behavior (accounts and transactions) is covered by dedicated controller request-specs (`spec/requests/ais_accounts_spec.rb` and `spec/requests/ais_transactions_spec.rb`). Callback and consent request specs should focus on callback handling and consent status reconciliation only.
 
 ### Phase 6: Documentation and Quality Gate
-- [ ] Update `README.md` with setup and `SE_*` env contract
-- [ ] Update `docs/ais_flow_sequence.md` with concrete request/response trace
+- [x] Update `README.md` with setup and `SE_*` env contract *(PR #19)*
+- [x] Update `docs/ais_flow_sequence.md` with concrete request/response trace *(PR #19)*
 - [ ] Update `docs/inconsistencies_and_errors.md` with observed doc vs sandbox behavior
-- [ ] Update milestone progress in `docs/salt_edge_compliance_plan.md`
+- [x] Update milestone progress in `docs/salt_edge_compliance_plan.md` *(PR #19)*
 
 ## Proposed Architecture
-- Controller layer: orchestration only
+- UI layer: ActiveAdmin (no authentication/authorization) for all operator interactions — provider management, consent lifecycle, and data fetching
+- Callback layer: plain Rails API endpoint for Salt Edge sandbox callbacks (outside ActiveAdmin)
 - Service layer:
   - universal clients in `app/services/` (for example, `HttpxClient`)
   - Salt Edge-specific logic in `app/services/salt_edge/` with namespaced service objects and error normalization
-- Persistence layer: rely on existing `Consent` and `Event` models for state and audit metadata
+  - `SaltEdge::ProviderRegistrationService` for upstream provider registration
+  - QSeal certificate generation service
+- Persistence layer: rely on existing `Consent` and `Event` models for state and audit metadata; add `Provider` model for provider management
+- Tunneling: `ngrok-wrapper` gem provides localhost tunnel for sandbox callback delivery
 - Logging: include upstream request IDs (`x-request-id`), headers and params with redaction
 
 ## File-by-File Change Plan
@@ -166,15 +192,22 @@ bin/rails server
   - Add `gem "dotenv"` in development/test
   - Add `gem "httpx"` if not already present
   - Add `gem "ngrok-wrapper"` for local callback tunnel support
+  - Add `gem "activeadmin"` (3.x) and `gem "dartsass-sprockets"` for admin UI (no Devise/authentication)
   - Add `gem "anyway_config"` for typed, validated service configuration
 - `.env.example`
   - Define complete `SE_*` contract with placeholders and notes
 - `config/initializers/filter_parameter_logging.rb`
   - Add filters for keys, certs, signatures, secrets, auth material
 - `config/routes.rb`
-  - Add all the resources' routes: consents, accounts, transactions, and callback endpoints
+  - Mount ActiveAdmin engine
+  - Add callback endpoint route (outside ActiveAdmin)
+- `app/admin/*`
+  - Add ActiveAdmin resource files: `providers.rb`, `consents.rb`, `events.rb`
+  - Provider resource: custom actions for QSeal generation and provider registration
+  - Consent resource: custom actions for create consent, fetch accounts, fetch transactions
+  - Event resource: read-only index/show for audit trail
 - `app/controllers/*`
-  - Add/update controller(s) for start/callback/results orchestration
+  - Add callback controller for Salt Edge sandbox callbacks (plain API endpoint)
 - `app/models/*` and `db/migrate/*`
   - Use `Consent` and `Event` for tracking callback/audit metadata.
 - `app/services/salt_edge/*`
