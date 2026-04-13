@@ -58,8 +58,7 @@ RSpec.describe SaltEdge::RequestAdapter do
     end
 
     it 'returns failed RequestResult for non-2xx responses with normalized RequestError' do
-      stub_request(:get, 'https://priora.saltedge.com/v1/accounts')
-        .to_return(status: 400, body: '{"tppMessages":[{"code":"FORMAT_ERROR","text":"Missing header"}]}')
+      stub_accounts_error(status: 400, body: { 'tppMessages' => [{ 'code' => 'FORMAT_ERROR', 'text' => 'Missing header' }] })
 
       result = adapter.request(method: :get, path: '/v1/accounts')
 
@@ -71,14 +70,13 @@ RSpec.describe SaltEdge::RequestAdapter do
     end
 
     it 'returns failed RequestResult on transport errors' do
-      stub_request(:get, 'https://priora.saltedge.com/v1/accounts')
-        .to_raise(StandardError.new('connection dropped'))
+      stub_timeout_for(:get, 'https://priora.saltedge.com/v1/accounts')
 
       result = adapter.request(method: :get, path: '/v1/accounts')
 
       expect(result).to be_failure
       expect(result.error).to be_a(SaltEdge::RequestError)
-      expect(result.error.message).to include('connection dropped')
+      expect(result.error.message).to match(/Salt Edge request failed/)
     end
 
     it 'returns raw_body hash when upstream body is not JSON' do

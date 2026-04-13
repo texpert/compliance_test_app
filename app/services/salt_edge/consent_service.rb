@@ -9,11 +9,11 @@ module SaltEdge
       @request_adapter = request_adapter
     end
 
-    def create_consent(state:, psu_ip_address: nil, valid_until: Date.current + 90)
+    def create_consent(consent_id:, psu_ip_address: nil, valid_until: Date.current + 90)
       headers = {
         'Content-Type' => 'application/json',
         'TPP-Redirect-Preferred' => 'true',
-        'TPP-Redirect-URI' => redirect_uri(state),
+        'TPP-Redirect-URI' => redirect_uri(consent_id),
         'PSU-IP-Address' => psu_ip_address || @config.psu_ip_address
       }.compact
 
@@ -33,6 +33,18 @@ module SaltEdge
         'sca_redirect_url' => data.dig('_links', 'scaRedirect', 'href'),
         'raw' => data
       }
+    end
+
+    # Perform upstream consent creation and persist upstream identifiers into the local Consent record.
+    # Create the local Consent first, then call this method to complete the upstream flow.
+    def create_and_persist_consent(consent:, psu_ip_address: nil, valid_until: Date.current + 90)
+      resp = create_consent(consent_id: consent.id, psu_ip_address: psu_ip_address, valid_until: valid_until)
+
+      consent.upstream_consent_id = resp['consent_id']
+      consent.status = Consent.status_value(resp['consent_status'])
+      consent.save!
+
+      resp
     end
 
     def consent_status(consent_id)
@@ -57,14 +69,13 @@ module SaltEdge
       }
     end
 
-    def redirect_uri(state)
-      uri_with_state(@config.redirect_uri, state)
+    def redirect_uri(consent_id)
+      uri_with_consent_id(@config.redirect_uri, consent_id)
     end
 
-
-    def uri_with_state(base_uri, state)
+    def uri_with_consent_id(base_uri, consent_id)
       separator = base_uri.include?('?') ? '&' : '?'
-      "#{base_uri}#{separator}state=#{CGI.escape(state)}"
+      "#{base_uri}#{separator}id=#{CGI.escape(consent_id.to_s)}"
     end
   end
 end
