@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  ActiveAdmin.routes(self)
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -19,5 +20,5 @@ Rails.application.routes.draw do
   get 'ais/consents/:id/accounts/:account_id/transactions', to: 'ais_transactions#index', as: :ais_consent_account_transactions
   get 'callback/:id', to: 'ais_callbacks#show', as: :ais_callback
 
-  root 'ais_consents#index'
+  root to: "admin/dashboard#index"
 end

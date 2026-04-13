@@ -14,8 +14,11 @@ gem 'jwt'
 # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
 gem 'kamal', require: false
 gem 'ngrok-wrapper'
-# The modern asset pipeline for Rails [https://github.com/rails/propshaft]
-gem 'propshaft'
+# Asset pipeline
+gem 'sprockets-rails'
+gem 'dartsass-sprockets'
+# Admin UI
+gem 'activeadmin', '~> 3.4'
 # Use the Puma web server [https://github.com/puma/puma]
 gem 'puma', '>= 5.0'
 gem 'rest-client'
