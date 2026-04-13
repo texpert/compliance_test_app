@@ -77,6 +77,9 @@ GEM
       uri (>= 0.13.1)
     addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
+    annotaterb (4.22.0)
+      activerecord (>= 6.0.0)
+      activesupport (>= 6.0.0)
     anyway_config (2.8.0)
       ruby-next-core (~> 1.0)
     ast (2.4.3)
@@ -111,6 +114,8 @@ GEM
     erubi (1.13.1)
     et-orbi (1.4.0)
       tzinfo
+    flipper (1.4.1)
+      concurrent-ruby (< 2)
     fugit (1.12.1)
       et-orbi (~> 1.4)
       raabro (~> 1.4)
@@ -389,12 +394,14 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  annotaterb
   anyway_config
   bootsnap
   brakeman
   bundler-audit
   debug
   dotenv
+  flipper
   httpx
   jbuilder
   jwt

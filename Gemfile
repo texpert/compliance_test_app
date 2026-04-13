@@ -6,6 +6,7 @@ gem 'rails', '~> 8.1.3'
 gem 'anyway_config'
 # Reduces boot times through caching; required in config/boot.rb
 gem 'bootsnap', require: false
+gem 'flipper'
 gem 'httpx'
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem 'jbuilder'
@@ -47,6 +48,7 @@ group :development, :test do
 end
 
 group :development do
+  gem 'annotaterb', require: false
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem 'web-console'
 end
