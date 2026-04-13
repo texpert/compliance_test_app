@@ -7,12 +7,7 @@ RSpec.describe SaltEdge::TransactionsService do
 
   subject(:service) { described_class.new(request_adapter: request_adapter) }
 
-  let(:upstream_transactions) do
-    {
-      'booked' => [{ 'bookingDate' => '2026-01-15', 'transactionAmount' => { 'amount' => '-42.00', 'currency' => 'EUR' } }],
-      'pending' => []
-    }
-  end
+  let(:upstream_transactions) { load_upstream_fixture('transactions_basic')['transactions'] }
   let(:signed_headers) do
     {
       'Signature' => 'sig',
@@ -29,8 +24,7 @@ RSpec.describe SaltEdge::TransactionsService do
 
   describe '#transactions' do
     it 'requests the correct path with explicit dates and Consent-ID header' do
-      stub_request(:get, 'https://priora.saltedge.com/v1/accounts/acc-001/transactions?bookingStatus=both&dateFrom=2026-01-01&dateTo=2026-01-31')
-        .to_return(status: 200, body: { transactions: upstream_transactions }.to_json, headers: { 'Content-Type' => 'application/json' })
+      stub_transactions_from_fixture(account_id: 'acc-001', consent_id: 'consent-abc', fixture_name: 'transactions_basic')
 
       result = service.transactions(
         account_id: 'acc-001',
@@ -51,8 +45,7 @@ RSpec.describe SaltEdge::TransactionsService do
     end
 
     it 'accepts a custom booking_status' do
-      stub_request(:get, 'https://priora.saltedge.com/v1/accounts/acc-001/transactions?bookingStatus=booked&dateFrom=2026-01-01&dateTo=2026-01-31')
-        .to_return(status: 200, body: { transactions: upstream_transactions }.to_json, headers: { 'Content-Type' => 'application/json' })
+      stub_transactions_from_fixture(account_id: 'acc-001', consent_id: 'consent-abc', fixture_name: 'transactions_basic')
 
       service.transactions(
         account_id: 'acc-001',
@@ -68,8 +61,7 @@ RSpec.describe SaltEdge::TransactionsService do
     it 'defaults date_to to today and date_from to 30 days earlier' do
       today = Date.new(2026, 4, 10)
       allow(Date).to receive(:current).and_return(today)
-      stub_request(:get, 'https://priora.saltedge.com/v1/accounts/acc-001/transactions?bookingStatus=both&dateFrom=2026-03-11&dateTo=2026-04-10')
-        .to_return(status: 200, body: { transactions: upstream_transactions }.to_json, headers: { 'Content-Type' => 'application/json' })
+      stub_transactions_from_fixture(account_id: 'acc-001', consent_id: 'consent-abc', fixture_name: 'transactions_basic')
 
       service.transactions(account_id: 'acc-001', consent_id: 'consent-abc')
 
@@ -77,15 +69,13 @@ RSpec.describe SaltEdge::TransactionsService do
     end
 
     it 'returns an empty hash when the response contains no transactions key' do
-      stub_request(:get, /https:\/\/priora\.saltedge\.com\/v1\/accounts\/acc-001\/transactions\?.*/)
-        .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
+      stub_transactions(account_id: 'acc-001', consent_id: 'consent-abc', transactions: {})
 
       expect(service.transactions(account_id: 'acc-001', consent_id: 'consent-abc')).to eq({})
     end
 
     it 'raises when upstream returns a non-2xx response' do
-      stub_request(:get, /https:\/\/priora\.saltedge\.com\/v1\/accounts\/acc-001\/transactions\?.*/)
-        .to_return(status: 401, body: '{"tppMessages":[{"text":"CONSENT_EXPIRED"}]}')
+      stub_transactions_error(account_id: 'acc-001', status: 401, body: { 'tppMessages' => [{ 'text' => 'CONSENT_EXPIRED' }] })
 
       expect {
         service.transactions(account_id: 'acc-001', consent_id: 'expired')
@@ -93,8 +83,8 @@ RSpec.describe SaltEdge::TransactionsService do
     end
 
     it 'URL-encodes the account_id in the path' do
-      stub_request(:get, 'https://priora.saltedge.com/v1/accounts/acc%2Fweird+id/transactions?bookingStatus=both&dateFrom=2026-01-01&dateTo=2026-01-31')
-        .to_return(status: 200, body: { transactions: upstream_transactions }.to_json, headers: { 'Content-Type' => 'application/json' })
+      # transactions fixture uses escaped account id when matching; re-use same fixture
+      stub_transactions_from_fixture(account_id: 'acc%2Fweird+id', consent_id: 'consent-abc', fixture_name: 'transactions_basic')
 
       service.transactions(
         account_id: 'acc/weird id',

@@ -29,8 +29,8 @@ RSpec.describe SaltEdge::AccountsService do
     end
 
     it 'requests GET /v1/accounts with Consent-ID header' do
-      stub_request(:get, 'https://priora.saltedge.com/v1/accounts')
-        .to_return(status: 200, body: { accounts: upstream_accounts }.to_json, headers: { 'Content-Type' => 'application/json' })
+      # use canned fixture for accounts
+      stub_accounts_from_fixture(consent_id: 'consent-abc', fixture_name: 'accounts_basic')
 
       result = service.accounts(consent_id: 'consent-abc')
 
@@ -53,8 +53,7 @@ RSpec.describe SaltEdge::AccountsService do
     end
 
     it 'raises when upstream returns a non-2xx response' do
-      stub_request(:get, 'https://priora.saltedge.com/v1/accounts')
-        .to_return(status: 403, body: '{"tppMessages":[{"text":"CONSENT_INVALID"}]}')
+      stub_accounts_error(status: 403, body: { 'tppMessages' => [{ 'text' => 'CONSENT_INVALID' }] })
 
       expect { service.accounts(consent_id: 'expired') }.to raise_error(SaltEdge::RequestError, 'CONSENT_INVALID')
     end
