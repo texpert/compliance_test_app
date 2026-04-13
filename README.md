@@ -61,6 +61,17 @@ bin/rspec
 - Execution trace template and run notes: `docs/ais_flow_sequence.md`
 - Master milestone tracking: `docs/salt_edge_compliance_plan.md`
 
+## Callback processing
+
+Incoming ASPSP callbacks are handled by `AisCallbacks::CallbackProcessor`.
+The processor is responsible for validating callback parameters, recording a single incoming `callback` Event
+for audit purposes, and delegating to handler classes that perform outgoing upstream requests.
+
+# Fetching accounts and transactions
+- Accounts and transactions are not fetched automatically by the callback handler anymore; the `AuthorizationCallbackHandler` now only reconciles consent status. Fetching of accounts and transactions should be triggered manually (for example, via a background job or operator-initiated endpoint) and will produce `accounts_fetch` and `transactions_fetch` Events when executed.
+
+- Testing note: fetching behavior has dedicated controller specs (`spec/requests/ais_accounts_spec.rb` and `spec/requests/ais_transactions_spec.rb`). Callback and consent request specs intentionally do not exercise accounts/transactions fetching — they focus on callback validation and consent status transitions.
+
 ## Environment Variables
 Copy `.env.example` to `.env` and fill the `SE_*` values required for sandbox integration.
 
