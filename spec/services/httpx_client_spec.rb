@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 RSpec.describe HttpxClient do
   RequestStruct = Struct.new(:verb, :uri, :headers, :body)
   ResponseStruct = Struct.new(:status, :headers, :body)

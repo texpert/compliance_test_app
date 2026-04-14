@@ -1,4 +1,4 @@
-require 'rails_helper'
+# frozen_string_literal: true
 
 RSpec.describe QsealCertificate, type: :model do
   it { should belong_to(:provider) }

@@ -50,8 +50,8 @@ group :development, :test do
   gem 'dotenv'
   gem 'factory_bot_rails'
   gem 'rspec-rails', '~> 8.0'
-  gem 'webmock'
   gem 'shoulda-matchers', '~> 6.0'
+  gem 'webmock'
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem 'rubocop-rails-omakase', require: false

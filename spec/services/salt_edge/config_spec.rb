@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 RSpec.describe SaltEdge::Config do
   # Full set of env values used across examples.
   # Optional keys are explicitly set to nil to isolate tests from any .env file loaded in test env.

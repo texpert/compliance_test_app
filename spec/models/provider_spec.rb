@@ -1,4 +1,4 @@
-require 'rails_helper'
+# frozen_string_literal: true
 
 RSpec.describe Provider, type: :model do
   it { should have_many(:qseal_certificates) }
