@@ -540,6 +540,7 @@ DEPENDENCIES
   flipper
   httpx
   jbuilder
+  jquery-rails
   jwt
   kamal
   ngrok-wrapper

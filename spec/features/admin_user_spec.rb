@@ -36,4 +36,17 @@ RSpec.describe 'Admin User management', type: :feature do
     expect(page).to have_content('User was successfully destroyed')
     expect(page).not_to have_content('DeleteUser')
   end
+
+  scenario "Admin can view user's companies on show page" do
+    company1 = create(:company, name: 'CompA', email: 'a@example.com')
+    company2 = create(:company, name: 'CompB', email: 'b@example.com')
+    user = create(:user, name: 'PanelUser', email: 'paneluser@example.com')
+    company1.users << user
+    company2.users << user
+
+    visit admin_user_path(user)
+    expect(page).to have_content('Companies')
+    expect(page).to have_content('CompA')
+    expect(page).to have_content('CompB')
+  end
 end

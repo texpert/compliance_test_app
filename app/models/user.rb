@@ -11,7 +11,7 @@
 #  updated_at :datetime         not null
 #
 class User < ApplicationRecord
-  has_many :company_users
+  has_many :company_users, dependent: :destroy
   has_many :companies, through: :company_users
   has_many :represented_providers, class_name: 'Provider', foreign_key: :representative_id
 
@@ -22,6 +22,6 @@ class User < ApplicationRecord
   end
 
   def self.ransackable_associations(auth_object = nil)
-    %w[company_users companies represented_providers]
+    %w[represented_providers]
   end
 end

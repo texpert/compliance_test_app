@@ -16,7 +16,7 @@
 #  updated_at   :datetime         not null
 #
 class Company < ApplicationRecord
-  has_many :company_users
+  has_many :company_users, dependent: :destroy
   has_many :users, through: :company_users
   has_many :providers
 
@@ -37,6 +37,6 @@ class Company < ApplicationRecord
   end
 
   def self.ransackable_associations(auth_object = nil)
-    %w[company_users users providers]
+    %w[users providers]
   end
 end
