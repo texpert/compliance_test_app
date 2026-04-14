@@ -21,4 +21,12 @@ class Company < ApplicationRecord
   has_many :providers
 
   validates :name, :email, :address, :phone_number, :zip_code, :city, :country_code, presence: true
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[id name email address phone_number zip_code city country_code created_at updated_at]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[company_users users providers]
+  end
 end

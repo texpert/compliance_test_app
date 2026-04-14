@@ -41,3 +41,8 @@ In `config/application.rb`, keep these commented out unless a task explicitly ne
 - Do not duplicate factory declarations in individual specs; use top-level `let` declarations in the outermost `describe` block to DRY test setup.
 - If a test requires a custom instance, use `build(:model, attr: ...)` or `create(:model, attr: ...)` with explicit attributes.
 - Always include `config.include FactoryBot::Syntax::Methods` in `rails_helper.rb` for concise syntax.
+
+## ActiveAdmin Authentication (Test App Convention)
+- For this compliance test app, ActiveAdmin is used without user authentication or authorization (see Milestone 4 implementation plan).
+- All admin feature specs must assume no authentication is required and should not attempt to log in as an admin user.
+- If authentication is enabled in the future, update this convention and specs accordingly.

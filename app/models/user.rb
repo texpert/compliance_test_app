@@ -16,4 +16,12 @@ class User < ApplicationRecord
   has_many :represented_providers, class_name: 'Provider', foreign_key: :representative_id
 
   validates :name, :email, presence: true
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[id name email created_at updated_at]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[company_users companies represented_providers]
+  end
 end

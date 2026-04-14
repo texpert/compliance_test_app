@@ -50,8 +50,6 @@ group :development, :test do
   gem 'dotenv'
   gem 'factory_bot_rails'
   gem 'rspec-rails', '~> 8.0'
-  gem 'shoulda-matchers', '~> 6.0'
-  gem 'webmock'
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem 'rubocop-rails-omakase', require: false
@@ -61,4 +59,11 @@ group :development do
   gem 'annotaterb', require: false
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem 'web-console'
+end
+
+group :test do
+  gem 'capybara'
+  gem 'shoulda-matchers'
+  gem 'selenium-webdriver', '>= 4.11'
+  gem 'webmock'
 end
