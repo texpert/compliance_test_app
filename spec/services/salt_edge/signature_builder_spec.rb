@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 RSpec.describe SaltEdge::SignatureBuilder do
   let(:config) do
     double(SaltEdge::Config,

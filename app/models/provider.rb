@@ -29,6 +29,9 @@ class Provider < ApplicationRecord
   belongs_to :representative, class_name: 'User'
   has_many :consents, dependent: :destroy
   has_many :events, dependent: :nullify
+  has_many :qseal_certificates
+  # Allows accessing base certificates directly: providers.certificates
+  has_many :certificates, through: :qseal_certificates, source: :certificate_record
 
   validates :name, presence: true
   validates :code, presence: true, uniqueness: true

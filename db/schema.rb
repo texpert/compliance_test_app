@@ -25,6 +25,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_14_120000) do
     t.index ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource"
   end
 
+  create_table "ca_certificates", force: :cascade do |t|
+    t.boolean "is_root", default: false
+    t.integer "path_length_constraint"
+  end
+
+  create_table "certificates", force: :cascade do |t|
+    t.integer "certifiable_id", null: false
+    t.string "certifiable_type", null: false
+    t.datetime "created_at", null: false
+    t.text "csr"
+    t.string "issuer_dn"
+    t.integer "issuer_id"
+    t.datetime "not_after"
+    t.datetime "not_before"
+    t.text "pem_content"
+    t.text "private_key"
+    t.string "public_key_hash"
+    t.text "public_key_pem"
+    t.string "revocation_reason"
+    t.datetime "revoked_at"
+    t.string "serial_number", null: false
+    t.string "status", default: "pending", null: false
+    t.string "subject", null: false
+    t.datetime "updated_at", null: false
+    t.index ["certifiable_type", "certifiable_id"], name: "index_certificates_on_certifiable_type_and_certifiable_id"
+    t.index ["public_key_hash"], name: "index_certificates_on_public_key_hash"
+    t.index ["status"], name: "index_certificates_on_status"
+  end
+
   create_table "companies", force: :cascade do |t|
     t.string "address", null: false
     t.string "city", null: false
@@ -88,6 +117,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_14_120000) do
     t.index ["representative_id"], name: "index_providers_on_representative_id"
   end
 
+  create_table "qseal_certificates", force: :cascade do |t|
+    t.json "custom_attributes", default: {}
+    t.integer "provider_id", null: false
+    t.string "qc_statement_id", null: false
+    t.string "tsp_name", null: false
+    t.index ["provider_id"], name: "index_qseal_certificates_on_provider_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
@@ -95,6 +132,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_14_120000) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "certificates", "certificates", column: "issuer_id"
   add_foreign_key "companies_users", "companies"
   add_foreign_key "companies_users", "users"
   add_foreign_key "consents", "providers"
@@ -102,4 +140,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_14_120000) do
   add_foreign_key "events", "providers"
   add_foreign_key "providers", "companies"
   add_foreign_key "providers", "users", column: "representative_id"
+  add_foreign_key "qseal_certificates", "providers"
 end

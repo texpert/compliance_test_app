@@ -5,6 +5,9 @@
 - Ruby version target: `3.4.9` (`.tool-versions`).
 - Test framework: `rspec-rails`.
 
+## Ruby File Pragma
+- Every Ruby file must start with `# frozen_string_literal: true` as the first line, unless there is a documented exception.
+
 ## Test Conventions
 - Require `rails_helper` centrally in `spec/spec_helper.rb`.
 - Do not add `require 'rails_helper'` in individual spec files unless a one-off exception is explicitly justified.
