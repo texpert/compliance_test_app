@@ -21,6 +21,9 @@ Rails.application.configure do
   # Allow the default RSpec request-spec host through HostAuthorization.
   config.hosts << "www.example.com"
 
+  # Allow Capybara's test server host
+  config.hosts << "127.0.0.1"
+
   # Show full error reports.
   config.consider_all_requests_local = true
   config.cache_store = :null_store
