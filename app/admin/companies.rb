@@ -29,7 +29,7 @@ ActiveAdmin.register Company do
       f.input :phone_number
       f.input :zip_code
       f.input :city
-      f.input :country_code
+      f.input :country_code, as: :country
     end
     f.actions
   end

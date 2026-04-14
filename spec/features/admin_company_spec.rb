@@ -16,10 +16,12 @@ RSpec.describe 'Admin Company management', type: :feature do
     fill_in 'Phone number', with: '654321'
     fill_in 'Zip code', with: '54321'
     fill_in 'City', with: 'Gotham'
-    fill_in 'Country code', with: 'GB'
+    # Select the first matching option by value to avoid ambiguity
+    find('select[name="company[country_code]"] option[value="GB"]', match: :first).select_option
     click_button 'Create Company'
     expect(page).to have_content('Company was successfully created')
     expect(page).to have_content('Beta Ltd')
+    expect(Company.last.country_code).to eq('GB')
   end
 
   scenario 'Admin can edit a company' do
