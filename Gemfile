@@ -20,6 +20,7 @@ gem 'kamal', require: false
 gem 'ngrok-wrapper'
 gem 'puma', '>= 5.0'
 gem 'rest-client'
+gem 'jquery-rails'
 
 # Asset pipeline
 gem 'sprockets-rails'

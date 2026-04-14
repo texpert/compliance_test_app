@@ -21,4 +21,19 @@ ActiveAdmin.register User do
     end
     f.actions
   end
+
+  show do
+    attributes_table do
+      row :name
+      row :email
+    end
+
+    panel 'Companies' do
+      table_for user.companies do
+        column :id
+        column :name
+        column :email
+      end
+    end
+  end
 end

@@ -33,4 +33,57 @@ ActiveAdmin.register Company do
     end
     f.actions
   end
+
+  show do
+    attributes_table do
+      row :name
+      row :email
+      row :address
+      row :phone_number
+      row :zip_code
+      row :city
+      row :country_code
+    end
+
+    div id: 'users_panel' do
+      render partial: 'admin/companies/users_panel', locals: { company: company }
+    end
+  end
+
+  member_action :remove_user, method: :post do
+    company = Company.find(params[:id])
+    user = User.find(params[:user_id])
+    company.users.destroy(user)
+    respond_to do |format|
+      format.js {
+        rendered = render_to_string(partial: 'admin/companies/users_panel', locals: { company: company })
+        render js: "$('#users_panel').html(#{rendered.to_json});"
+      }
+      format.html { redirect_to resource_path(company), notice: 'User was removed from company.' }
+    end
+  end
+
+  member_action :add_user, method: :post do
+    company = Company.find(params[:id])
+    user_id = params[:user_id] || (params[:add_user] && params[:add_user][:user_id])
+    user = User.find_by(id: user_id)
+    if user && !company.users.include?(user)
+      company.users << user
+      respond_to do |format|
+        format.js {
+          rendered = render_to_string(partial: 'admin/companies/users_panel', locals: { company: company })
+          render js: "$('#users_panel').html(#{rendered.to_json});"
+        }
+        format.html { redirect_to resource_path(company), notice: 'User was added to company.' }
+      end
+    else
+      respond_to do |format|
+        format.js {
+          rendered = render_to_string(partial: 'admin/companies/users_panel', locals: { company: company, error: 'User not found or already a member.' })
+          render js: "$('#users_panel').html(#{rendered.to_json});"
+        }
+        format.html { redirect_to resource_path(company), alert: 'User not found or already a member.' }
+      end
+    end
+  end
 end

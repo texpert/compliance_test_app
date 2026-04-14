@@ -1,0 +1,3 @@
+$('#users_panel').html(
+  <%= j(render partial: 'admin/companies/users_panel', locals: { company: company, error: (defined?(error) ? error : nil) }) %>
+);

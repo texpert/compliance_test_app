@@ -1,0 +1,4 @@
+<%= semantic_form_for :add_user, url: add_user_admin_company_path(company), method: :post, remote: true do |f| %>
+  <%= f.input :user_id, as: :select, collection: User.where.not(id: company.user_ids).pluck(:name, :id), include_blank: 'Select user' %>
+  <%= f.action :submit, label: 'Add User' %>
+<% end %>

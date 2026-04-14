@@ -43,4 +43,34 @@ RSpec.describe 'Admin Company management', type: :feature do
     expect(page).to have_content('Company was successfully destroyed')
     expect(page).not_to have_content('DeleteMe')
   end
+
+  scenario 'Admin can manage company users', js: true do
+    company = create(:company, name: 'PanelCo', email: 'panelco@example.com')
+    user1 = create(:user, name: 'Alice', email: 'alice@example.com')
+    user2 = create(:user, name: 'Bob', email: 'bob@example.com')
+    company.users << user1
+
+    visit admin_company_path(company)
+    expect(page).to have_content('Users')
+    expect(page).to have_content('Alice')
+    within('#users_panel table tbody') do
+      expect(page).not_to have_selector('tr', text: 'Bob')
+    end
+
+    # Add Bob to company
+    select 'Bob', from: 'add_user_user_id'
+    click_button 'Add User'
+    expect(page).to have_selector('#users_panel table tbody')
+    within('#users_panel table tbody') do
+      expect(page).to have_selector('tr', text: 'Bob')
+    end
+
+    # Remove Alice from company
+    within(:xpath, "//tr[td[contains(.,'Alice')]]") do
+      accept_confirm { click_link 'Remove' }
+    end
+    within('#users_panel table tbody') do
+      expect(page).not_to have_selector('tr', text: 'Alice')
+    end
+  end
 end

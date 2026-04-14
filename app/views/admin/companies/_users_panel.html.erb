@@ -1,0 +1,26 @@
+<% if defined?(error) && error %>
+  <div class="flash flash-error"><%= error %></div>
+<% end %>
+<table>
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% company.users.each do |user| %>
+      <tr>
+        <td><%= user.id %></td>
+        <td><%= user.name %></td>
+        <td><%= user.email %></td>
+        <td>
+          <%= link_to 'Remove', remove_user_admin_company_path(company, user_id: user.id), method: :post, remote: true, data: { confirm: 'Are you sure?' } %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= render partial: 'admin/companies/add_user', locals: { company: company } %>
