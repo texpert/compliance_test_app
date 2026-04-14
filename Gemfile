@@ -1,3 +1,6 @@
+group :development, :test do
+  gem 'factory_bot_rails'
+end
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"

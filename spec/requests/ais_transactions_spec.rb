@@ -31,7 +31,9 @@ RSpec.describe 'AisTransactions', type: :request do
   end
 
   it 'returns forbidden when consent status is not valid' do
-    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
+    company = Company.create!(name: 'Test Company', email: 'test@company.com', address: '123 Main St', phone_number: '+1234567890', zip_code: '12345', city: 'Testville', country_code: 'US')
+    user = User.create!(name: 'Test User', email: 'user@company.com')
+    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox', company: company, representative: user)
     consent = provider.consents.create!(upstream_consent_id: 'consent-1', status: Consent::STATUS_RECEIVED)
 
     get ais_consent_account_transactions_path(consent, 'acc-1')
@@ -41,7 +43,9 @@ RSpec.describe 'AisTransactions', type: :request do
   end
 
   it 'returns transactions for a given account and records transactions_fetch Event' do
-    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
+    company = Company.create!(name: 'Test Company', email: 'test@company.com', address: '123 Main St', phone_number: '+1234567890', zip_code: '12345', city: 'Testville', country_code: 'US')
+    user = User.create!(name: 'Test User', email: 'user@company.com')
+    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox', company: company, representative: user)
     consent = provider.consents.create!(upstream_consent_id: 'consent-1', status: Consent::STATUS_VALID)
 
     tx = { 'booked' => [{ 'transactionId' => 'tx-1' }] }
@@ -59,7 +63,9 @@ RSpec.describe 'AisTransactions', type: :request do
   end
 
   it 'returns no_account_available when no account can be derived' do
-    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
+    company = Company.create!(name: 'Test Company', email: 'test@company.com', address: '123 Main St', phone_number: '+1234567890', zip_code: '12345', city: 'Testville', country_code: 'US')
+    user = User.create!(name: 'Test User', email: 'user@company.com')
+    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox', company: company, representative: user)
     consent = provider.consents.create!(upstream_consent_id: 'consent-1', status: Consent::STATUS_VALID)
 
     allow(accounts_service).to receive(:accounts).with(consent_id: 'consent-1').and_return([])
@@ -74,7 +80,9 @@ RSpec.describe 'AisTransactions', type: :request do
   end
 
   it 'records upstream error and returns bad_gateway' do
-    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
+    company = Company.create!(name: 'Test Company', email: 'test@company.com', address: '123 Main St', phone_number: '+1234567890', zip_code: '12345', city: 'Testville', country_code: 'US')
+    user = User.create!(name: 'Test User', email: 'user@company.com')
+    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox', company: company, representative: user)
     consent = provider.consents.create!(upstream_consent_id: 'consent-1', status: Consent::STATUS_VALID)
 
     allow(transactions_service).to receive(:transactions).and_raise(SaltEdge::RequestError.new('timeout'))

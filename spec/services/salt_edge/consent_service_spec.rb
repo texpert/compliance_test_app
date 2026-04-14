@@ -103,7 +103,9 @@ RSpec.describe SaltEdge::ConsentService do
   end
 
   describe '#create_and_persist_consent' do
-    let(:provider) { Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox') }
+    let(:company) { Company.create!(name: 'Test Company', email: 'test@company.com', address: '123 Main St', phone_number: '+1234567890', zip_code: '12345', city: 'Testville', country_code: 'US') }
+    let(:user) { User.create!(name: 'Test User', email: 'user@company.com') }
+    let(:provider) { Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox', company: company, representative: user) }
     let(:consent_record) { provider.consents.create!(upstream_consent_id: nil, status: Consent::STATUS_RECEIVED, callback_params: {}) }
 
     it 'calls create_consent, persists upstream ids and returns response' do

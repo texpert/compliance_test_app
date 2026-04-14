@@ -23,7 +23,7 @@ RSpec.describe 'AisAccounts', type: :request do
   end
 
   it 'returns accounts and records an accounts_fetch Event' do
-    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
+    provider = create(:provider)
     consent = provider.consents.create!(upstream_consent_id: 'consent-1', status: Consent::STATUS_VALID)
 
     accounts = [{ 'resourceId' => 'acc-1', 'iban' => 'DE123' }]
@@ -47,7 +47,7 @@ RSpec.describe 'AisAccounts', type: :request do
   end
 
   it 'returns forbidden when consent status is not valid' do
-    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
+    provider = create(:provider)
     consent = provider.consents.create!(upstream_consent_id: 'consent-1', status: Consent::STATUS_RECEIVED)
 
     get ais_consent_accounts_path(consent)
@@ -57,7 +57,7 @@ RSpec.describe 'AisAccounts', type: :request do
   end
 
   it 'records upstream error and returns bad_gateway' do
-    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
+    provider = create(:provider)
     consent = provider.consents.create!(upstream_consent_id: 'consent-1', status: Consent::STATUS_VALID)
 
     allow(accounts_service).to receive(:accounts).and_raise(SaltEdge::RequestError.new('upstream failure'))

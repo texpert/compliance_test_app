@@ -134,6 +134,11 @@ GEM
     erubi (1.13.1)
     et-orbi (1.4.0)
       tzinfo
+    factory_bot (6.5.6)
+      activesupport (>= 6.1.0)
+    factory_bot_rails (6.5.1)
+      factory_bot (~> 6.5)
+      railties (>= 6.1.0)
     flipper (1.4.1)
       concurrent-ruby (< 2)
     formtastic (6.0.0)
@@ -497,6 +502,7 @@ DEPENDENCIES
   dartsass-sprockets
   debug
   dotenv
+  factory_bot_rails
   flipper
   httpx
   jbuilder
