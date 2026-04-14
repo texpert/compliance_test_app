@@ -29,9 +29,9 @@
 #  provider_id  (provider_id => providers.id)
 #
 RSpec.describe Event, type: :model do
-  let(:company) { Company.create!(name: 'Test Company', email: 'test@company.com', address: '123 Main St', phone_number: '+1234567890', zip_code: '12345', city: 'Testville', country_code: 'US') }
-  let(:user) { User.create!(name: 'Test User', email: 'user@company.com') }
-  let(:provider) { Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox', company: company, representative: user) }
+  let(:company) { create(:company) }
+  let(:user) { create(:user) }
+  let(:provider) { create(:provider, company: company, representative: user) }
   let(:consent) { provider.consents.create!(upstream_consent_id: 'consent-1', status: Consent::STATUS_RECEIVED) }
 
   before { Flipper.enable(:ais_event_recording) }
