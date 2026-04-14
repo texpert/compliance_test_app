@@ -26,7 +26,7 @@
 
 class Provider < ApplicationRecord
   belongs_to :company
-  belongs_to :representative, class_name: "User"
+  belongs_to :representative, class_name: 'User'
   has_many :consents, dependent: :destroy
   has_many :events, dependent: :nullify
 
