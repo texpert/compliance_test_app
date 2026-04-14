@@ -28,8 +28,10 @@
 #  consents_status_check  (status IN ('accepted','received','valid','partiallyAuthorised','rejected','revokedByPsu','expired','terminatedByTpp'))
 #
 RSpec.describe Consent, type: :model do
-  let(:provider) { Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox') }
-  let(:other_provider) { Provider.create!(name: 'Other Sandbox', code: 'other_sandbox') }
+  let(:company) { create(:company) }
+  let(:user) { create(:user) }
+  let(:provider) { create(:provider, company: company, representative: user) }
+  let(:other_provider) { create(:provider, name: 'Other Sandbox', code: 'other_sandbox', company: company, representative: user) }
 
   describe 'associations and validations' do
     it 'requires unique upstream_consent_id per provider' do

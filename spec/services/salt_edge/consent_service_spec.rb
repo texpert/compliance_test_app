@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.describe SaltEdge::ConsentService do
+  let(:company) { create(:company) }
+  let(:user) { create(:user) }
+  let(:provider) { create(:provider, company: company, representative: user) }
+
   let(:consent_config) do
     instance_double(
       SaltEdge::Config,
@@ -103,7 +107,6 @@ RSpec.describe SaltEdge::ConsentService do
   end
 
   describe '#create_and_persist_consent' do
-    let(:provider) { Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox') }
     let(:consent_record) { provider.consents.create!(upstream_consent_id: nil, status: Consent::STATUS_RECEIVED, callback_params: {}) }
 
     it 'calls create_consent, persists upstream ids and returns response' do

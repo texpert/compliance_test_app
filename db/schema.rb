@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_195729) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_14_120000) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.integer "author_id"
     t.string "author_type"
@@ -23,6 +23,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_195729) do
     t.index ["author_type", "author_id"], name: "index_active_admin_comments_on_author"
     t.index ["namespace"], name: "index_active_admin_comments_on_namespace"
     t.index ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource"
+  end
+
+  create_table "companies", force: :cascade do |t|
+    t.string "address", null: false
+    t.string "city", null: false
+    t.string "country_code", null: false
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.string "name", null: false
+    t.string "phone_number", null: false
+    t.datetime "updated_at", null: false
+    t.string "zip_code", null: false
+  end
+
+  create_table "companies_users", id: false, force: :cascade do |t|
+    t.integer "company_id", null: false
+    t.integer "user_id", null: false
+    t.index ["company_id", "user_id"], name: "index_companies_users_on_company_id_and_user_id", unique: true
+    t.index ["company_id"], name: "index_companies_users_on_company_id"
+    t.index ["user_id"], name: "index_companies_users_on_user_id"
   end
 
   create_table "consents", force: :cascade do |t|
@@ -58,13 +78,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_195729) do
 
   create_table "providers", force: :cascade do |t|
     t.string "code", null: false
+    t.integer "company_id", null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
+    t.integer "representative_id", null: false
     t.datetime "updated_at", null: false
     t.index ["code"], name: "index_providers_on_code", unique: true
+    t.index ["company_id"], name: "index_providers_on_company_id"
+    t.index ["representative_id"], name: "index_providers_on_representative_id"
   end
 
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_foreign_key "companies_users", "companies"
+  add_foreign_key "companies_users", "users"
   add_foreign_key "consents", "providers"
   add_foreign_key "events", "consents"
   add_foreign_key "events", "providers"
+  add_foreign_key "providers", "companies"
+  add_foreign_key "providers", "users", column: "representative_id"
 end

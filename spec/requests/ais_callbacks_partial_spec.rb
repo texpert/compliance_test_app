@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 RSpec.describe 'AisCallbacks partial progression', type: :request do
+  let(:company) { create(:company) }
+  let(:user) { create(:user) }
+  let(:provider) { create(:provider, company: company, representative: user) }
   let(:consent_service) { instance_double(SaltEdge::ConsentService) }
 
   before do
@@ -9,7 +12,6 @@ RSpec.describe 'AisCallbacks partial progression', type: :request do
   end
 
   it 'allows progression when replay marker exists and consent is partiallyAuthorised' do
-    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
     consent = provider.consents.create!(upstream_consent_id: 'consent-123', status: Consent::STATUS_PARTIALLY_AUTHORISED, callback_params: {})
 
     # Insert a replay marker for the same consent/code

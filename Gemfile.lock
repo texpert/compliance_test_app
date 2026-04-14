@@ -97,6 +97,7 @@ GEM
       ruby2_keywords (>= 0.0.2)
     ast (2.4.3)
     base64 (0.3.0)
+    bcrypt (3.1.22)
     bcrypt_pbkdf (1.1.2)
     bigdecimal (4.1.0)
     bindex (0.8.1)
@@ -134,6 +135,11 @@ GEM
     erubi (1.13.1)
     et-orbi (1.4.0)
       tzinfo
+    factory_bot (6.5.6)
+      activesupport (>= 6.1.0)
+    factory_bot_rails (6.5.1)
+      factory_bot (~> 6.5)
+      railties (>= 6.1.0)
     flipper (1.4.1)
       concurrent-ruby (< 2)
     formtastic (6.0.0)
@@ -488,15 +494,17 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
-  activeadmin (~> 3.4)
+  activeadmin (~> 3.5)
   annotaterb
   anyway_config
+  bcrypt (~> 3.1.7)
   bootsnap
   brakeman
   bundler-audit
   dartsass-sprockets
   debug
   dotenv
+  factory_bot_rails
   flipper
   httpx
   jbuilder
@@ -516,6 +524,9 @@ DEPENDENCIES
   tzinfo-data
   web-console
   webmock
+
+RUBY VERSION
+   ruby 3.4.9p82
 
 BUNDLED WITH
    2.6.9

@@ -26,9 +26,11 @@ RSpec.describe 'AisConsents', type: :request do
 
   describe 'consent creation endpoints' do
     it 'creates provider/consent records via POST /ais/consents and redirects to SCA URL' do
+      company = create(:company)
+      user = create(:user)
       stub_create_consent(consent_id: 'consent-123', consent_status: 'received', sca_url: 'https://aspsp.example/sca')
 
-      post ais_consents_path
+      post ais_consents_path, params: { provider: { name: 'Artea Sandbox', code: 'artea_sandbox', company_id: company.id, representative_id: user.id } }
 
       expect(response).to redirect_to('https://aspsp.example/sca')
       consent = Consent.order(:created_at).last
@@ -41,7 +43,7 @@ RSpec.describe 'AisConsents', type: :request do
 
   describe 'GET /callback' do
     it 'rejects unsupported callback event types' do
-      provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
+      provider = create(:provider)
       consent = provider.consents.create!(upstream_consent_id: 'consent-123', status: Consent::STATUS_RECEIVED)
 
       get ais_callback_path(consent), params: { event_type: 'unknown_event' }
@@ -61,7 +63,7 @@ RSpec.describe 'AisConsents', type: :request do
     end
 
     it 'returns unprocessable_content when the consent has no upstream id yet' do
-      provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
+      provider = create(:provider)
       consent = provider.consents.create!(upstream_consent_id: nil, status: Consent::STATUS_RECEIVED, callback_params: {})
 
       get ais_callback_path(consent), params: { code: 'auth-code' }
@@ -76,7 +78,7 @@ RSpec.describe 'AisConsents', type: :request do
     end
 
     it 'rejects replayed callback payloads' do
-      provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
+      provider = create(:provider)
       consent = provider.consents.create!(upstream_consent_id: 'consent-123', status: Consent::STATUS_RECEIVED)
       Event.create!(
         provider: provider,
@@ -98,9 +100,11 @@ RSpec.describe 'AisConsents', type: :request do
     end
 
     it 'persists callback and redirects to result when consent is valid' do
+      company = create(:company)
+      user = create(:user)
       stub_create_consent(consent_id: 'consent-123', consent_status: 'received', sca_url: 'https://aspsp.example/sca')
 
-      post ais_consents_path
+      post ais_consents_path, params: { provider: { name: 'Artea Sandbox', code: 'artea_sandbox', company_id: company.id, representative_id: user.id } }
 
       consent = Consent.order(:created_at).last
       accounts = [{ 'resourceId' => 'acc-1', 'iban' => 'DE123' }]
@@ -123,9 +127,11 @@ RSpec.describe 'AisConsents', type: :request do
     end
 
     it 'allows partially authorised progression before valid' do
+      company = create(:company)
+      user = create(:user)
       stub_create_consent(consent_id: 'consent-123', consent_status: 'received', sca_url: 'https://aspsp.example/sca')
 
-      post ais_consents_path
+      post ais_consents_path, params: { provider: { name: 'Artea Sandbox', code: 'artea_sandbox', company_id: company.id, representative_id: user.id } }
 
       consent = Consent.order(:created_at).last
       stub_consent_status('consent-123', ['partiallyAuthorised', 'valid'])

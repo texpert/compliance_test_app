@@ -19,7 +19,18 @@ class AisConsentsController < ApplicationController
   end
 
   def create
-    provider = Provider.find_or_create_by(code: 'artea_sandbox') { |r| r.name = 'Artea Sandbox' }
+    provider_attrs = {
+      code: params.dig(:provider, :code) || 'artea_sandbox',
+      name: params.dig(:provider, :name) || 'Artea Sandbox',
+      company_id: params.dig(:provider, :company_id),
+      representative_id: params.dig(:provider, :representative_id)
+    }.compact
+
+    provider = Provider.find_by(code: provider_attrs[:code])
+    unless provider
+      provider = Provider.create!(provider_attrs)
+    end
+
     consent = provider.consents.create!(
       upstream_consent_id: nil,
       status: Consent::STATUS_RECEIVED,

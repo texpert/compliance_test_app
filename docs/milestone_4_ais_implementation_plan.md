@@ -115,6 +115,14 @@ bin/rails server
 
 ### Phase 4: ActiveAdmin UI, Provider Management, and State Management
 
+# Certificate Management (Polymorphic, Secure, and Auditable)
+- [ ] Create a polymorphic `Certificate` model using Rails Delegated Types to support both CA and QSeal certificates
+- [ ] Implement asymmetric encryption for private key storage (e.g., using Rails encrypted attributes or a secure encryption gem)
+- [ ] Support self-referential chaining for CA hierarchies (parent-child relationships between certificates)
+- [ ] Integrate a state machine for certificate lifecycle management (e.g., `draft`, `active`, `revoked`, `expired`)
+- [ ] Expose certificate management actions in ActiveAdmin (create, activate, revoke, view chain)
+- [ ] Ensure all certificate operations are auditable and sensitive data is redacted in logs
+
 This phase uses **ActiveAdmin** (without user authentication/authorization) as the sole UI layer for testing purposes. There is no separate orchestration controller and no dedicated start, callback, or result pages — all operator interactions happen through ActiveAdmin.
 
 - [ ] Add `gem "activeadmin"` (3.x) and `gem "dartsass-sprockets"` to `Gemfile`

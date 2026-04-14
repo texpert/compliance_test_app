@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 RSpec.describe AisCallbacks::CallbackProcessor do
+  let(:company) { create(:company) }
+  let(:user) { create(:user) }
+  let(:provider) { create(:provider, company: company, representative: user) }
+
   it 'infers consent and invokes handler when request contains id and code' do
-    provider = Provider.create!(name: 'Artea Sandbox', code: 'artea_sandbox')
     consent = provider.consents.create!(upstream_consent_id: 'consent-1', status: Consent::STATUS_RECEIVED)
 
     env = Rack::MockRequest.env_for("/callback/#{consent.id}?code=abc")
