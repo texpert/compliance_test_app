@@ -37,7 +37,7 @@ gem 'thruster', require: false
 gem 'tzinfo-data', platforms: %i[ windows jruby ]
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
-gem "bcrypt", "~> 3.1.7"
+gem 'bcrypt', '~> 3.1.7'
 
 group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
