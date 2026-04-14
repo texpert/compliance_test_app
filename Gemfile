@@ -10,6 +10,7 @@ gem 'activeadmin', '~> 3.5'
 gem 'anyway_config'
 # Reduces boot times through caching; required in config/boot.rb
 gem 'bootsnap', require: false
+gem 'country_select'
 gem 'flipper'
 gem 'httpx'
 gem 'jbuilder' # Build JSON APIs with ease [https://github.com/rails/jbuilder]
