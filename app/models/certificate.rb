@@ -52,6 +52,17 @@ class Certificate < ApplicationRecord
 
   validates :subject, :serial_number, :certifiable_type, :certifiable_id, :status, presence: true
 
+  def self.ransackable_associations(auth_object = nil)
+    %w[certifiable issued_certificates issuer]
+  end
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[
+      certifiable_id certifiable_type created_at id issuer_dn issuer_id not_after not_before public_key_hash
+      revocation_reason revoked_at serial_number status subject updated_at
+    ]
+  end
+
   private
 
   def extract_metadata

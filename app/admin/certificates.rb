@@ -4,7 +4,8 @@ ActiveAdmin.register Certificate do
   menu label: 'Certificates'
 
   # Custom filter for certificate type
-  filter :certifiable_type, as: :select, label: 'Type', collection: [['CA Root', 'CaCertificate'], %w[QSeal QsealCertificate]]
+  filter :certifiable_type, as: :select, label: 'Type',
+         collection: [['CA Root', 'CaCertificate'], %w[QSeal QsealCertificate]]
   filter :serial_number
   filter :subject
   filter :status, as: :select
