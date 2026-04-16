@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Company do
-  permit_params :name, :email, :address, :phone_number, :zip_code, :city, :country_code
+  permit_params :name, :official_name, :email, :address, :phone_number, :zip_code, :city, :country_code
 
   index do
     selectable_column
     id_column
     column :name
+    column :official_name
     column :email
     column :address
     column :phone_number
@@ -24,6 +25,7 @@ ActiveAdmin.register Company do
   form do |f|
     f.inputs do
       f.input :name
+      f.input :official_name
       f.input :email
       f.input :address
       f.input :phone_number
@@ -37,6 +39,7 @@ ActiveAdmin.register Company do
   show do
     attributes_table do
       row :name
+      row :official_name
       row :email
       row :address
       row :phone_number

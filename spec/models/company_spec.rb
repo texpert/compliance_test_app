@@ -4,16 +4,17 @@
 #
 # Table name: companies
 #
-#  id           :integer          not null, primary key
-#  address      :string           not null
-#  city         :string           not null
-#  country_code :string           not null
-#  email        :string           not null
-#  name         :string           not null
-#  phone_number :string           not null
-#  zip_code     :string           not null
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
+#  id            :integer          not null, primary key
+#  address       :string           not null
+#  city          :string           not null
+#  country_code  :string           not null
+#  email         :string           not null
+#  name          :string           not null
+#  official_name :string
+#  phone_number  :string           not null
+#  zip_code      :string           not null
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
 #
 RSpec.describe Company, type: :model do
   subject(:company) { build(:company) }
@@ -29,7 +30,12 @@ RSpec.describe Company, type: :model do
   end
 
   it 'stores country_code in ISO2 format when created via feature spec' do
-    company = Company.create!(name: 'Test', email: 'test@example.com', address: '123 St', phone_number: '123', zip_code: '12345', city: 'London', country_code: 'GB')
+    company = Company.create!(name: 'Test', official_name: 'Test Ltd.', email: 'test@example.com', address: '123 St', phone_number: '123', zip_code: '12345', city: 'London', country_code: 'GB')
     expect(company.country_code).to eq('GB')
+  end
+
+  it 'persists official_name' do
+    company = Company.create!(name: 'Test', official_name: 'Test Ltd.', email: 'test@example.com', address: '123 St', phone_number: '123', zip_code: '12345', city: 'London', country_code: 'GB')
+    expect(company.official_name).to eq('Test Ltd.')
   end
 end
