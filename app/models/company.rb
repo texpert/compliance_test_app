@@ -4,16 +4,17 @@
 #
 # Table name: companies
 #
-#  id           :integer          not null, primary key
-#  address      :string           not null
-#  city         :string           not null
-#  country_code :string           not null
-#  email        :string           not null
-#  name         :string           not null
-#  phone_number :string           not null
-#  zip_code     :string           not null
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
+#  id            :integer          not null, primary key
+#  address       :string           not null
+#  city          :string           not null
+#  country_code  :string           not null
+#  email         :string           not null
+#  name          :string           not null
+#  official_name :string
+#  phone_number  :string           not null
+#  zip_code      :string           not null
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
 #
 class Company < ApplicationRecord
   has_many :company_users, dependent: :destroy
@@ -33,7 +34,7 @@ class Company < ApplicationRecord
   end
 
   def self.ransackable_attributes(auth_object = nil)
-    %w[id name email address phone_number zip_code city country_code created_at updated_at]
+    %w[id name official_name email address phone_number zip_code city country_code created_at updated_at]
   end
 
   def self.ransackable_associations(auth_object = nil)

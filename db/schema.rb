@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_15_205508) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_16_221102) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.integer "author_id"
     t.string "author_type"
@@ -62,6 +62,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_15_205508) do
     t.datetime "created_at", null: false
     t.string "email", null: false
     t.string "name", null: false
+    t.string "official_name"
     t.string "phone_number", null: false
     t.datetime "updated_at", null: false
     t.string "zip_code", null: false
