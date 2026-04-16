@@ -39,3 +39,13 @@
 # Ignore key files for decrypting credentials and more.
 /config/credentials/*.key
 
+
+# MemPalace per-project files (issue #185)
+mempalace.yaml
+entities.json
+# MemPalace local files
+mempalace.yaml
+storage/
+tmp/cache/
+mcp_*.log
+

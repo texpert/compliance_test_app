@@ -350,3 +350,8 @@ ActiveAdmin.setup do |config|
   #
   # config.use_webpacker = true
 end
+
+ActiveSupport.on_load(:active_admin_controller) do
+  # Inside this block, self is ActiveAdmin::ResourceController
+  prepend ActiveAdminErrorHandler
+end
