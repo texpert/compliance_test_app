@@ -1,0 +1,11 @@
+<h3>Create a CA Root Certificate</h3>
+
+<%= form_with url: create_ca_root_certificate_post_admin_certificates_path, method: :post, local: true do |f| %>
+  <div class="input">
+    <%= f.label :name, 'Certificate Name' %><br>
+    <%= f.text_field :name, value: 'SaltEdge CA Root', required: true %>
+  </div>
+  <div class="actions">
+    <%= f.submit 'Create CA Root certificate', class: 'button' %>
+  </div>
+<% end %>
