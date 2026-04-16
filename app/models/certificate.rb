@@ -6,6 +6,7 @@
 #  certifiable_type  :string           not null
 #  csr               :text
 #  issuer_dn         :string
+#  name              :string
 #  not_after         :datetime
 #  not_before        :datetime
 #  pem_content       :text
@@ -34,8 +35,11 @@
 #
 class Certificate < ApplicationRecord
   include AASM
+
   delegated_type :certifiable, types: %w[CaCertificate QsealCertificate], dependent: :destroy
+
   belongs_to :issuer, class_name: 'Certificate', optional: true
+
   has_many :issued_certificates, class_name: 'Certificate', foreign_key: :issuer_id
 
   encrypts :private_key
@@ -50,6 +54,7 @@ class Certificate < ApplicationRecord
 
   before_validation :extract_metadata, if: :pem_content_changed?
 
+  validates :name, presence: true
   validates :subject, :serial_number, :certifiable_type, :certifiable_id, :status, presence: true
 
   def self.ransackable_associations(auth_object = nil)

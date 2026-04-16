@@ -8,6 +8,7 @@
 #  certifiable_type  :string           not null
 #  csr               :text
 #  issuer_dn         :string
+#  name              :string
 #  not_after         :datetime
 #  not_before        :datetime
 #  pem_content       :text
@@ -49,7 +50,7 @@ RSpec.describe Certificate, type: :model do
   it { should validate_presence_of(:status) }
 
   it 'encrypts private_key' do
-    cert = described_class.create!(subject: 'CN=test', serial_number: '123', certifiable: CaCertificate.create!, status: 'pending')
+    cert = described_class.create!(subject: 'CN=test', serial_number: '123', certifiable: CaCertificate.create!, status: 'pending', name: 'Test Cert')
     cert.update!(private_key: 'SECRET')
     raw = described_class.connection.select_value("SELECT private_key FROM certificates WHERE id=#{cert.id}")
     expect(raw).not_to eq('SECRET')

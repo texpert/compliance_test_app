@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_14_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_15_205508) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.integer "author_id"
     t.string "author_type"
@@ -37,6 +37,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_14_120000) do
     t.text "csr"
     t.string "issuer_dn"
     t.integer "issuer_id"
+    t.string "name"
     t.datetime "not_after"
     t.datetime "not_before"
     t.text "pem_content"

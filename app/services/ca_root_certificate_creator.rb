@@ -29,7 +29,7 @@ class CaRootCertificateCreator
 
     root_ca.sign(root_key, OpenSSL::Digest::SHA256.new)
 
-    ca = CaCertificate.create!
+    ca = CaCertificate.create!(is_root: true)
     cert = Certificate.new(
       certifiable: ca,
       pem_content: root_ca.to_pem,
