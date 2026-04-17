@@ -19,19 +19,13 @@
 #  provider_id  (provider_id => providers.id)
 #
 class QsealCertificate < ApplicationRecord
-  # PSD2 role OIDs per ETSI TS 119 495
+  # PSD2 role definitions per ETSI TS 119 495.
+  # Each key is the role code; :oid is the ETSI OID; :label is the full regulatory name.
   PSP_ROLES = {
-    'PSP_AS' => '0.4.0.19495.1.1',
-    'PSP_PI' => '0.4.0.19495.1.2',
-    'PSP_AI' => '0.4.0.19495.1.3',
-    'PSP_IC' => '0.4.0.19495.1.4'
-  }.freeze
-
-  PSP_ROLE_LABELS = {
-    'PSP_AS' => 'Account Servicing Payment Service Provider (banks/ASPSPs)',
-    'PSP_PI' => 'Payment Initiation Service Provider (PISP)',
-    'PSP_AI' => 'Account Information Service Provider (AISP)',
-    'PSP_IC' => 'Card-based Payment Instruments Issuer (CBPII)'
+    'PSP_AS' => { oid: '0.4.0.19495.1.1', label: 'Account Servicing Payment Service Provider (banks/ASPSPs)' },
+    'PSP_PI' => { oid: '0.4.0.19495.1.2', label: 'Payment Initiation Service Provider (PISP)' },
+    'PSP_AI' => { oid: '0.4.0.19495.1.3', label: 'Account Information Service Provider (AISP)' },
+    'PSP_IC' => { oid: '0.4.0.19495.1.4', label: 'Card-based Payment Instruments Issuer (CBPII)' }
   }.freeze
 
   belongs_to :provider

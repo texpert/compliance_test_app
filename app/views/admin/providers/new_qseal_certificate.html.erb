@@ -26,12 +26,12 @@
     <p style="color:#666; font-size:0.9em; margin:0 0 0.75em;">
       Select one or more PSD2 roles this certificate will declare. Most TPPs carry multiple roles.
     </p>
-    <% QsealCertificate::PSP_ROLES.each_key do |code| %>
+    <% QsealCertificate::PSP_ROLES.each do |code, attrs| %>
       <div style="margin-bottom:0.5em;">
         <label>
           <%= check_box_tag 'roles[]', code, true %>
           <strong><%= code %></strong>
-          <span style="color:#555;">(<%= QsealCertificate::PSP_ROLE_LABELS[code] %>)</span>
+          <span style="color:#555;">(<%= attrs[:label] %>)</span>
         </label>
       </div>
     <% end %>

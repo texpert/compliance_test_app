@@ -147,7 +147,7 @@ RSpec.describe 'Admin Provider management', type: :feature do
       visit new_qseal_certificate_admin_provider_path(provider)
       QsealCertificate::PSP_ROLES.each_key do |code|
         expect(page).to have_checked_field(code, visible: :any)
-        expect(page).to have_content(QsealCertificate::PSP_ROLE_LABELS[code])
+        expect(page).to have_content(QsealCertificate::PSP_ROLES[code][:label])
       end
     end
 

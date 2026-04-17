@@ -121,7 +121,7 @@ class QsealCertificateCreator
     psd2_roles_seq = OpenSSL::ASN1::Sequence.new(
       @roles.map do |role|
         OpenSSL::ASN1::Sequence.new([
-          OpenSSL::ASN1::ObjectId.new(QsealCertificate::PSP_ROLES.fetch(role)),
+          OpenSSL::ASN1::ObjectId.new(QsealCertificate::PSP_ROLES.fetch(role)[:oid]),
           OpenSSL::ASN1::UTF8String.new(role)
         ])
       end

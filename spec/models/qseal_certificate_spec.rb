@@ -23,13 +23,15 @@ RSpec.describe QsealCertificate, type: :model do
   it { should have_one(:certificate_record).class_name('Certificate').dependent(:destroy) }
 
   describe 'PSP_ROLES' do
-    it 'defines all four PSD2 role codes with correct OIDs' do
-      expect(described_class::PSP_ROLES).to eq(
+    it 'defines all four PSD2 role codes with correct OIDs and labels' do
+      expect(described_class::PSP_ROLES.transform_values { |v| v[:oid] }).to eq(
         'PSP_AS' => '0.4.0.19495.1.1',
         'PSP_PI' => '0.4.0.19495.1.2',
         'PSP_AI' => '0.4.0.19495.1.3',
         'PSP_IC' => '0.4.0.19495.1.4'
       )
+      expect(described_class::PSP_ROLES.keys).to match_array(%w[PSP_AS PSP_PI PSP_AI PSP_IC])
+      expect(described_class::PSP_ROLES.values).to all(include(:oid, :label))
     end
   end
 
