@@ -103,9 +103,9 @@ ActiveAdmin.register Provider do
 
     panel 'QSeal Certificates', id: 'qseal_certificates_panel' do
       if resource.certificates.exists?
-        table_for resource.certificates.order(created_at: :desc) do
+        table_for resource.certificates.includes(:certifiable).order(created_at: :desc) do
           column(:name) { |c| link_to c.name, [:admin, c] }
-          column :serial_number
+          column('TSP Name') { |c| c.certifiable.tsp_name }
           column :status
           column :not_before
           column :not_after
