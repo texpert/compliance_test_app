@@ -73,8 +73,8 @@ ActiveAdmin.register Certificate do
       row :subject
       row :status
       if resource.certifiable_type == 'QsealCertificate'
-        row('TSP Name') { |c| c.certifiable.tsp_name }
-        row('PSP Roles') { |c|
+        row(:tsp_name) { |c| c.certifiable.tsp_name }
+        row(:psp_roles) { |c|
           c.certifiable.qc_statement_data.map { |code|
             "#{code} (#{QsealCertificate::PSP_ROLES.dig(code, :label)})"
           }.join(', ')

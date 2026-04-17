@@ -29,3 +29,8 @@
 
 en:
   hello: "Hello world"
+  activerecord:
+    attributes:
+      certificate:
+        tsp_name: "TSP Name"
+        psp_roles: "PSP Roles"

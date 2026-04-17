@@ -161,11 +161,14 @@ RSpec.describe 'Admin Provider management', type: :feature do
       expect(qseal.qc_statement_data).to match_array(QsealCertificate::PSP_ROLES.keys)
     end
 
-    scenario 'Created QSeal certificate appears in the provider QSeal panel' do
-      QsealCertificateCreator.create!(provider: provider, ca_certificate: ca_cert_record, name: 'Panel Cert')
+    scenario 'Created QSeal certificate appears in the provider QSeal panel with TSP Name' do
+      _cert, qseal = QsealCertificateCreator.create!(provider: provider, ca_certificate: ca_cert_record, name: 'Panel Cert')
       visit admin_provider_path(provider)
       within('#qseal_certificates_panel') do
         expect(page).to have_content('Panel Cert')
+        expect(page).to have_content(qseal.tsp_name)
+        expect(page).to have_content('TSP Name')
+        expect(page).not_to have_content(qseal.certificate_record.serial_number)
       end
     end
 
