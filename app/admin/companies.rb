@@ -48,8 +48,14 @@ ActiveAdmin.register Company do
       row :country_code
     end
 
-    div id: 'users_panel' do
-      render partial: 'admin/companies/users_panel', locals: { company: company }
+    div style: 'display: flex; gap: 1rem;' do
+      div id: 'users_panel', style: 'width: 50%;' do
+        render partial: 'admin/companies/users_panel', locals: { company: company }
+      end
+
+      div id: 'providers_panel', style: 'width: 50%;' do
+        render partial: 'admin/companies/providers_panel', locals: { company: company }
+      end
     end
   end
 

@@ -24,6 +24,32 @@
 #  representative_id  (representative_id => users.id)
 #
 RSpec.describe Provider, type: :model do
+  subject(:provider) { build(:provider) }
+
+  it { should belong_to(:company) }
+  it { should belong_to(:representative).class_name('User') }
   it { should have_many(:qseal_certificates) }
   it { should have_many(:certificates).through(:qseal_certificates).source(:certificate_record) }
+
+  it { should validate_presence_of(:name) }
+  it { should validate_presence_of(:code) }
+
+  it 'validates code uniqueness' do
+    create(:provider, code: 'unique_code')
+    duplicate = build(:provider, code: 'unique_code')
+    expect(duplicate).not_to be_valid
+    expect(duplicate.errors[:code]).to include('has already been taken')
+  end
+
+  describe '.ransackable_attributes' do
+    it 'includes expected attributes' do
+      expect(described_class.ransackable_attributes).to include('name', 'code', 'company_id', 'representative_id')
+    end
+  end
+
+  describe '.ransackable_associations' do
+    it 'includes company and representative' do
+      expect(described_class.ransackable_associations).to include('company', 'representative')
+    end
+  end
 end
