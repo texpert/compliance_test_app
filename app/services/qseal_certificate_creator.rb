@@ -38,6 +38,7 @@ class QsealCertificateCreator
         pem_content: signed_cert.to_pem,
         private_key: client_key.to_pem,
         csr: csr.to_pem,
+        public_key_pem: signed_cert.public_key.to_pem,
         issuer: @ca_certificate,
         status: 'issued'
       )

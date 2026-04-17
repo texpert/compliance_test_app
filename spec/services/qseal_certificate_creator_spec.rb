@@ -52,10 +52,12 @@ RSpec.describe QsealCertificateCreator do
       expect(cert.serial_number).to be_present
     end
 
-    it 'auto-extracts the public key from PEM content' do
+    it 'derives and stores the public key from the signed certificate' do
       cert, _qseal = result
-      expect(cert.public_key_pem).to be_present
+      expect(cert.reload.public_key_pem).to be_present
       expect(cert.public_key_pem).to start_with('-----BEGIN PUBLIC KEY-----')
+      parsed = OpenSSL::X509::Certificate.new(cert.pem_content)
+      expect(cert.public_key_pem).to eq(parsed.public_key.to_pem)
     end
 
     it 'sets the issuer to the CA certificate record' do
