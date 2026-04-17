@@ -1,0 +1,20 @@
+<h3>Create a QSeal Certificate for <%= @provider.name %></h3>
+
+<%= form_with url: create_qseal_certificate_admin_provider_path(@provider), method: :post, local: true do |f| %>
+  <div class="input">
+    <%= f.label :name, 'Certificate Name' %><br>
+    <%= f.text_field :name, value: "#{@provider.name} QSeal", required: true %>
+  </div>
+  <div class="input">
+    <%= f.label :ca_certificate_id, 'CA Certificate (for signing)' %><br>
+    <%= f.select :ca_certificate_id,
+                 @ca_certificates.map { |c| ["#{c.name} — serial #{c.serial_number}", c.id] },
+                 { selected: @ca_certificates.one? ? @ca_certificates.first.id : nil,
+                   prompt: 'Select a CA Certificate' },
+                 { required: true } %>
+  </div>
+  <div class="actions">
+    <%= f.submit 'Create QSeal Certificate', class: 'button' %>
+    <%= link_to 'Cancel', admin_provider_path(@provider), class: 'button' %>
+  </div>
+<% end %>

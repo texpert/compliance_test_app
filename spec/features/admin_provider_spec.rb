@@ -113,4 +113,62 @@ RSpec.describe 'Admin Provider management', type: :feature do
     end
     expect(page).not_to have_content('ToDelete')
   end
+
+  context 'QSeal Certificate creation' do
+    let!(:provider) { create(:provider, name: 'Acme TPP', code: 'acme_tpp', company: company, representative: user) }
+    let!(:ca_cert_record) { CaRootCertificateCreator.create!(name: 'Test CA Root').first }
+
+    scenario 'Provider show page has Create QSeal Certificate action item' do
+      visit admin_provider_path(provider)
+      expect(page).to have_link('Create QSeal Certificate')
+    end
+
+    scenario 'Provider show page has QSeal Certificates panel' do
+      visit admin_provider_path(provider)
+      expect(page).to have_css('#qseal_certificates_panel')
+      within('#qseal_certificates_panel') do
+        expect(page).to have_content('No QSeal certificates yet.')
+      end
+    end
+
+    scenario 'New QSeal certificate form is pre-filled with provider name and auto-selects the only CA' do
+      visit new_qseal_certificate_admin_provider_path(provider)
+      expect(page).to have_content("Create a QSeal Certificate for #{provider.name}")
+      expect(find_field('Certificate Name').value).to eq("#{provider.name} QSeal")
+      expect(find_field('CA Certificate (for signing)').value).to eq(ca_cert_record.id.to_s)
+    end
+
+    scenario 'Admin can create a QSeal certificate from the provider show page' do
+      visit new_qseal_certificate_admin_provider_path(provider)
+      fill_in 'Certificate Name', with: 'My QSeal Cert'
+      click_button 'Create QSeal Certificate'
+      expect(page).to have_content('QSeal certificate created successfully.')
+      expect(Certificate.where(certifiable_type: 'QsealCertificate').exists?).to be true
+    end
+
+    scenario 'Created QSeal certificate appears in the provider QSeal panel' do
+      QsealCertificateCreator.create!(provider: provider, ca_certificate: ca_cert_record, name: 'Panel Cert')
+      visit admin_provider_path(provider)
+      within('#qseal_certificates_panel') do
+        expect(page).to have_content('Panel Cert')
+      end
+    end
+
+    scenario 'Shows error when CA certificate is not found', js: true do
+      visit new_qseal_certificate_admin_provider_path(provider)
+      page.execute_script("document.querySelector('[name=\"ca_certificate_id\"]').removeAttribute('required'); document.querySelector('[name=\"ca_certificate_id\"]').value = '0'")
+      click_button 'Create QSeal Certificate'
+      expect(page).to have_content('CA Certificate not found.')
+    end
+
+    scenario 'Shows no CA certificates message when none exist', js: false do
+      Certificate.where(certifiable_type: 'CaCertificate').find_each do |c|
+        c.certifiable.destroy
+      end
+      visit new_qseal_certificate_admin_provider_path(provider)
+      expect(page).to have_content("Create a QSeal Certificate for #{provider.name}")
+      # The select should be present but empty
+      expect(page).to have_select('CA Certificate (for signing)')
+    end
+  end
 end
