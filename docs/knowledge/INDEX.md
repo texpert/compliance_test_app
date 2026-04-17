@@ -20,7 +20,12 @@ When adding a new domain folder:
 2. Add an entry to this index with a one-line description.
 3. Use lowercase hyphenated names (e.g., `docs/knowledge/aspsp-dashboard/`, `docs/knowledge/tpp-registration/`).
 
-Suggested future domains as the project grows:
-- `docs/knowledge/tpp-registration/` — certificate setup, sandbox registration patterns, error observations
+## Domains (continued)
+- `docs/knowledge/tpp-registration/` — QSeal certificate structure, PSD2 role OIDs, NCA fields, Ruby openssl patterns
+  - `knowledge.md`: qcStatements extension anatomy, PSD2 role OID table, DB storage convention
+  - `hypotheses.md`: NCA name format, CA trust validation in Priora sandbox, QSCD declaration
+  - `rules.md`: 2048-bit key requirement, organizationIdentifier OID rule, role selection minimums
+
+## Suggested Future Domains
 - `docs/knowledge/aspsp-dashboard/` — dashboard behavior, sandbox UI patterns
 - `docs/knowledge/berlingroup-api/` — Berlin Group protocol behaviors, quirks, and confirmed patterns

@@ -4,15 +4,23 @@ require 'openssl'
 require 'securerandom'
 
 class QsealCertificateCreator
+  # id-etsi-qct-eseal — declares certificate is a Qualified Electronic Seal (eIDAS Annex III)
+  QCT_ESEAL_OID = '0.4.0.1862.1.2'
+  # id-etsi-psd2-qcStatement — PSD2 roles container per ETSI TS 119 495
+  PSD2_QC_STATEMENT_OID = '0.4.0.19495.2'
+  # id-pe-qcStatements — X.509 extension OID
+  QC_STATEMENTS_EXT_OID = '1.3.6.1.5.5.7.1.3'
+
   # Returns [Certificate, QsealCertificate] or raises on error
-  def self.create!(provider:, ca_certificate:, name:)
-    new(provider: provider, ca_certificate: ca_certificate, name: name).create!
+  def self.create!(provider:, ca_certificate:, name:, roles: QsealCertificate::PSP_ROLES.keys)
+    new(provider: provider, ca_certificate: ca_certificate, name: name, roles: roles).create!
   end
 
-  def initialize(provider:, ca_certificate:, name:)
+  def initialize(provider:, ca_certificate:, name:, roles:)
     @provider = provider
     @ca_certificate = ca_certificate
     @name = name
+    @roles = roles
   end
 
   def create!
@@ -29,7 +37,7 @@ class QsealCertificateCreator
       qseal = QsealCertificate.create!(
         provider: @provider,
         tsp_name: @provider.company.official_name.presence || @provider.company.name,
-        qc_statement_id: 'PSP_AI PSP_PI PSP_CI'
+        qc_statement_data: @roles
       )
 
       certificate = Certificate.create!(
@@ -93,13 +101,38 @@ class QsealCertificateCreator
     cert.add_extension(ef.create_extension('subjectKeyIdentifier', 'hash', false))
     cert.add_extension(ef.create_extension('keyUsage', 'digitalSignature,keyEncipherment', true))
     cert.add_extension(ef.create_extension('extendedKeyUsage', 'clientAuth,serverAuth', false))
+    cert.add_extension(build_qc_statements_extension)
+  end
 
-    # id-pe-qcStatements (1.3.6.1.5.5.7.1.3) — PSP role statements per ETSI EN 319 412-5
-    qc_seq = OpenSSL::ASN1::Sequence.new([
-      OpenSSL::ASN1::Sequence.new([
-        OpenSSL::ASN1::UTF8String.new('PSP_AI PSP_PI PSP_CI')
-      ])
+  # Builds qcStatements per ETSI TS 119 495:
+  #   - id-etsi-qct-eseal (0.4.0.1862.1.2): Qualified Electronic Seal declaration
+  #   - id-etsi-psd2-qcStatement (0.4.0.19495.2): PSD2 roles with NCA info
+  def build_qc_statements_extension
+    eseal_statement = OpenSSL::ASN1::Sequence.new([
+      OpenSSL::ASN1::ObjectId.new(QCT_ESEAL_OID)
     ])
-    cert.add_extension(OpenSSL::X509::Extension.new('1.3.6.1.5.5.7.1.3', qc_seq.to_der, false))
+
+    psd2_roles_seq = OpenSSL::ASN1::Sequence.new(
+      @roles.map do |role|
+        OpenSSL::ASN1::Sequence.new([
+          OpenSSL::ASN1::ObjectId.new(QsealCertificate::PSP_ROLES.fetch(role)),
+          OpenSSL::ASN1::UTF8String.new(role)
+        ])
+      end
+    )
+
+    psd2_info = OpenSSL::ASN1::Sequence.new([
+      psd2_roles_seq,
+      OpenSSL::ASN1::UTF8String.new('SaltEdge Test NCA'),
+      OpenSSL::ASN1::UTF8String.new('SALTEDGE-TEST')
+    ])
+
+    psd2_statement = OpenSSL::ASN1::Sequence.new([
+      OpenSSL::ASN1::ObjectId.new(PSD2_QC_STATEMENT_OID),
+      psd2_info
+    ])
+
+    qc_statements = OpenSSL::ASN1::Sequence.new([eseal_statement, psd2_statement])
+    OpenSSL::X509::Extension.new(QC_STATEMENTS_EXT_OID, qc_statements.to_der, false)
   end
 end

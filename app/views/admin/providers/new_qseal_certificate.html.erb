@@ -13,6 +13,15 @@
                    prompt: 'Select a CA Certificate' },
                  { required: true } %>
   </div>
+  <div class="input">
+    <label>PSP Roles</label><br>
+    <% QsealCertificate::PSP_ROLES.each do |code, oid| %>
+      <label style="display:inline-block; margin-right:1em;">
+        <%= check_box_tag 'roles[]', code, true %> <strong><%= code %></strong>
+        <span style="color:#666; font-size:0.85em;">(<%= oid %>)</span>
+      </label>
+    <% end %>
+  </div>
   <div class="actions">
     <%= f.submit 'Create QSeal Certificate', class: 'button' %>
     <%= link_to 'Cancel', admin_provider_path(@provider), class: 'button' %>

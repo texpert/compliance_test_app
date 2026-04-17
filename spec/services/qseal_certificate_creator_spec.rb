@@ -76,9 +76,9 @@ RSpec.describe QsealCertificateCreator do
       expect(qseal.tsp_name).to eq(expected)
     end
 
-    it 'sets qc_statement_id' do
+    it 'stores all PSP roles by default in qc_statement_data' do
       _cert, qseal = result
-      expect(qseal.qc_statement_id).to eq('PSP_AI PSP_PI PSP_CI')
+      expect(qseal.qc_statement_data).to match_array(QsealCertificate::PSP_ROLES.keys)
     end
 
     it 'derives subject CN from company name (spaces/hyphens to underscores, downcased)' do
@@ -94,6 +94,36 @@ RSpec.describe QsealCertificateCreator do
       parsed = OpenSSL::X509::Certificate.new(cert.pem_content)
       ca_parsed = OpenSSL::X509::Certificate.new(ca_cert_record.pem_content)
       expect(parsed.verify(ca_parsed.public_key)).to be true
+    end
+
+    it 'embeds the qcStatements extension in the certificate' do
+      cert, _qseal = result
+      parsed = OpenSSL::X509::Certificate.new(cert.pem_content)
+      qc_ext = parsed.extensions.find { |e| e.oid == 'qcStatements' || e.oid == '1.3.6.1.5.5.7.1.3' }
+      expect(qc_ext).not_to be_nil
+    end
+
+    context 'with a custom subset of roles' do
+      subject(:result) do
+        described_class.create!(
+          provider: provider,
+          ca_certificate: ca_cert_record,
+          name: 'AISP Only',
+          roles: ['PSP_AI']
+        )
+      end
+
+      it 'stores only the selected roles' do
+        _cert, qseal = result
+        expect(qseal.qc_statement_data).to eq(['PSP_AI'])
+      end
+
+      it 'still embeds the qcStatements extension' do
+        cert, _qseal = result
+        parsed = OpenSSL::X509::Certificate.new(cert.pem_content)
+        oids = parsed.extensions.map(&:oid)
+        expect(oids).to include('qcStatements').or include('1.3.6.1.5.5.7.1.3')
+      end
     end
 
     context 'when CA pem_content is invalid' do

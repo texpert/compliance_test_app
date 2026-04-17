@@ -32,10 +32,12 @@ ActiveAdmin.register Provider do
       next
     end
 
+    roles = Array(params[:roles]).select { |r| QsealCertificate::PSP_ROLES.key?(r) }
     cert, _qseal = QsealCertificateCreator.create!(
       provider: provider,
       ca_certificate: ca_certificate,
-      name: params[:name].presence || "#{provider.name} QSeal"
+      name: params[:name].presence || "#{provider.name} QSeal",
+      roles: roles.any? ? roles : QsealCertificate::PSP_ROLES.keys
     )
     redirect_to [:admin, cert], notice: 'QSeal certificate created successfully.'
   rescue => e

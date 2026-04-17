@@ -138,12 +138,21 @@ RSpec.describe 'Admin Provider management', type: :feature do
       expect(find_field('CA Certificate (for signing)').value).to eq(ca_cert_record.id.to_s)
     end
 
+    scenario 'New QSeal certificate form shows all PSP role checkboxes pre-checked' do
+      visit new_qseal_certificate_admin_provider_path(provider)
+      QsealCertificate::PSP_ROLES.each_key do |code|
+        expect(page).to have_checked_field(code, visible: :any)
+      end
+    end
+
     scenario 'Admin can create a QSeal certificate from the provider show page' do
       visit new_qseal_certificate_admin_provider_path(provider)
       fill_in 'Certificate Name', with: 'My QSeal Cert'
       click_button 'Create QSeal Certificate'
       expect(page).to have_content('QSeal certificate created successfully.')
-      expect(Certificate.where(certifiable_type: 'QsealCertificate').exists?).to be true
+      qseal = QsealCertificate.last
+      expect(qseal).not_to be_nil
+      expect(qseal.qc_statement_data).to match_array(QsealCertificate::PSP_ROLES.keys)
     end
 
     scenario 'Created QSeal certificate appears in the provider QSeal panel' do

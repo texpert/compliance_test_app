@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_16_221102) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_17_130000) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.integer "author_id"
     t.string "author_type"
@@ -122,7 +122,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_16_221102) do
   create_table "qseal_certificates", force: :cascade do |t|
     t.json "custom_attributes", default: {}
     t.integer "provider_id", null: false
-    t.string "qc_statement_id", null: false
+    t.json "qc_statement_data", default: [], null: false
     t.string "tsp_name", null: false
     t.index ["provider_id"], name: "index_qseal_certificates_on_provider_id"
   end
