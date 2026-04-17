@@ -1,0 +1,32 @@
+<h3>Providers</h3>
+<% if company.providers.any? %>
+  <table>
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Code</th>
+        <th>Representative</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% company.providers.each do |provider| %>
+        <tr>
+          <td><%= provider.id %></td>
+          <td><%= link_to provider.name, admin_provider_path(provider) %></td>
+          <td><%= provider.code %></td>
+          <td><%= provider.representative.name %></td>
+          <td>
+            <%= link_to 'Edit', edit_admin_provider_path(provider) %>
+            <%= link_to 'Delete', admin_provider_path(provider),
+                        method: :delete, data: { confirm: 'Are you sure?' } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p>No providers yet.</p>
+<% end %>
+<%= link_to 'Create Provider', new_admin_company_provider_path(company), class: 'button' %>
