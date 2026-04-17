@@ -1,4 +1,43 @@
-<%= semantic_form_for :add_user, url: add_user_admin_company_path(company), method: :post, remote: true do |f| %>
-  <%= f.input :user_id, as: :select, collection: User.where.not(id: company.user_ids).pluck(:name, :id), include_blank: 'Select user' %>
-  <%= f.action :submit, label: 'Add User' %>
-<% end %>
+<a href="#" id="show_add_user" class="button">Add User</a>
+<div id="add_user_form" style="display: none;">
+  <%= semantic_form_for :add_user, url: add_user_admin_company_path(company), method: :post, remote: true do |f| %>
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+      <%= f.select :user_id,
+                   User.where.not(id: company.user_ids).map { |u| ["#{u.name}, #{u.email}", u.id] },
+                   { include_blank: 'Select user' } %>
+      <%= f.submit 'Add User' %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  (function() {
+    var form = document.getElementById('add_user_form');
+    var btn  = document.getElementById('show_add_user');
+
+    function hide() {
+      form.style.display = 'none';
+      btn.style.display  = 'inline-block';
+      document.removeEventListener('mousedown', outsideClick, true);
+      document.removeEventListener('keydown', escKey);
+    }
+
+    function outsideClick(e) {
+      if (!form.contains(e.target)) { hide(); }
+    }
+
+    function escKey(e) {
+      if (e.key === 'Escape') { hide(); }
+    }
+
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      form.style.display = 'block';
+      btn.style.display  = 'none';
+      setTimeout(function() {
+        document.addEventListener('mousedown', outsideClick, true);
+        document.addEventListener('keydown', escKey);
+      }, 0);
+    });
+  })();
+</script>

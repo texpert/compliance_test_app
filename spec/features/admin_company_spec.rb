@@ -57,8 +57,11 @@ RSpec.describe 'Admin Company management', type: :feature do
       expect(page).not_to have_selector('tr', text: 'Bob')
     end
 
-    # Add Bob to company
-    select 'Bob', from: 'add_user_user_id'
+    # Add Bob to company — click "Add User" first to reveal the form
+    within('#users_panel') { click_link 'Add User' }
+    # Selector should display email after name
+    expect(page).to have_select('add_user_user_id', with_options: ['Bob, bob@example.com'])
+    select 'Bob, bob@example.com', from: 'add_user_user_id'
     click_button 'Add User'
     expect(page).to have_selector('#users_panel table tbody')
     within('#users_panel table tbody') do
@@ -72,5 +75,65 @@ RSpec.describe 'Admin Company management', type: :feature do
     within('#users_panel table tbody') do
       expect(page).not_to have_selector('tr', text: 'Alice')
     end
+  end
+
+  scenario 'User selector appears on Add User click and dismisses on Escape', js: true do
+    company = create(:company, name: 'PanelCo', email: 'panelco@example.com')
+    create(:user, name: 'Alice', email: 'alice@example.com')
+
+    visit admin_company_path(company)
+
+    expect(page).to have_css('#add_user_form', visible: false)
+    within('#users_panel') { click_link 'Add User' }
+    expect(page).to have_css('#add_user_form', visible: true)
+    expect(page).to have_css('#show_add_user', visible: false)
+
+    page.send_keys(:escape)
+
+    expect(page).to have_css('#add_user_form', visible: false)
+    expect(page).to have_css('#show_add_user', visible: true)
+  end
+
+  scenario 'User selector dismisses on click outside', js: true do
+    company = create(:company, name: 'PanelCo', email: 'panelco@example.com')
+    create(:user, name: 'Alice', email: 'alice@example.com')
+
+    visit admin_company_path(company)
+
+    within('#users_panel') { click_link 'Add User' }
+    expect(page).to have_css('#add_user_form', visible: true)
+
+    # Click outside the user selector (the providers panel)
+    find('#providers_panel').click
+
+    expect(page).to have_css('#add_user_form', visible: false)
+    expect(page).to have_css('#show_add_user', visible: true)
+  end
+
+  scenario 'Admin can manage company providers', js: true do
+    company  = create(:company, name: 'PanelCo', email: 'panelco@example.com')
+    user     = create(:user, name: 'Alice', email: 'alice@example.com')
+    company.users << user
+    provider = create(:provider, name: 'PanelCo TPP', code: 'panelco_tpp',
+                      company: company, representative: user)
+
+    visit admin_company_path(company)
+
+    within('#providers_panel') do
+      expect(page).to have_content('Providers')
+      expect(page).to have_content('PanelCo TPP')
+      expect(page).to have_content('panelco_tpp')
+      expect(page).to have_content('Alice')
+      expect(page).to have_link('Create Provider')
+      expect(page).to have_link('Edit')
+      expect(page).to have_link('Delete')
+    end
+
+    # Delete provider from the panel
+    within('#providers_panel') do
+      accept_confirm { click_link 'Delete' }
+    end
+    expect(page).to have_content('Provider was successfully destroyed')
+    expect(Provider.find_by(id: provider.id)).to be_nil
   end
 end

@@ -29,7 +29,7 @@ ActiveAdmin.register Provider do
     end
   end
 
-  index do
+  index blank_slate_link: -> { 'Create providers from a Company\'s page.' } do
     selectable_column
     id_column
     column :name

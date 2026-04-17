@@ -27,6 +27,7 @@
 class Provider < ApplicationRecord
   belongs_to :company
   belongs_to :representative, class_name: 'User'
+
   has_many :consents, dependent: :destroy
   has_many :events, dependent: :nullify
   has_many :qseal_certificates
@@ -37,4 +38,12 @@ class Provider < ApplicationRecord
   validates :code, presence: true, uniqueness: true
   validates :company, presence: true
   validates :representative, presence: true
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[id name code company_id representative_id created_at updated_at]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[company representative]
+  end
 end

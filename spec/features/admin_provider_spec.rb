@@ -14,9 +14,11 @@ RSpec.describe 'Admin Provider management', type: :feature do
     end
   end
 
-  scenario 'No "New Provider" button on standalone providers index' do
+  scenario 'No "New Provider" or "Create one" link on standalone providers index' do
     visit admin_providers_path
     expect(page).not_to have_link('New Provider')
+    expect(page).not_to have_link('Create one')
+    expect(page).to have_content("Create providers from a Company's page.")
   end
 
   scenario 'New provider form is pre-filled with defaults from company' do
