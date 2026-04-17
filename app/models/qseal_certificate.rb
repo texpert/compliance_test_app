@@ -27,6 +27,13 @@ class QsealCertificate < ApplicationRecord
     'PSP_IC' => '0.4.0.19495.1.4'
   }.freeze
 
+  PSP_ROLE_LABELS = {
+    'PSP_AS' => 'Account Servicing Payment Service Provider (banks/ASPSPs)',
+    'PSP_PI' => 'Payment Initiation Service Provider (PISP)',
+    'PSP_AI' => 'Account Information Service Provider (AISP)',
+    'PSP_IC' => 'Card-based Payment Instruments Issuer (CBPII)'
+  }.freeze
+
   belongs_to :provider
   has_one :certificate_record, as: :certifiable, class_name: 'Certificate', dependent: :destroy
 

@@ -21,6 +21,11 @@ ActiveAdmin.register Provider do
   member_action :new_qseal_certificate, method: :get do
     @provider = resource
     @ca_certificates = Certificate.where(certifiable_type: 'CaCertificate').order(:created_at)
+    @ca_cert_options = @ca_certificates.map do |c|
+      cn = c.subject.match(/CN=([^,\/]+)/)&.captures&.first&.strip
+      label = [c.name, cn.present? ? "CN: #{cn}" : nil, "serial #{c.serial_number}"].compact.join(' — ')
+      [label, c.id]
+    end
     render 'admin/providers/new_qseal_certificate'
   end
 

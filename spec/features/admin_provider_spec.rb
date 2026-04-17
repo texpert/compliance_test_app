@@ -134,20 +134,26 @@ RSpec.describe 'Admin Provider management', type: :feature do
     scenario 'New QSeal certificate form is pre-filled with provider name and auto-selects the only CA' do
       visit new_qseal_certificate_admin_provider_path(provider)
       expect(page).to have_content("Create a QSeal Certificate for #{provider.name}")
-      expect(find_field('Certificate Name').value).to eq("#{provider.name} QSeal")
-      expect(find_field('CA Certificate (for signing)').value).to eq(ca_cert_record.id.to_s)
+      expect(find_field('Name').value).to eq("#{provider.name} QSeal")
+      expect(find_field('CA Certificate').value).to eq(ca_cert_record.id.to_s)
     end
 
-    scenario 'New QSeal certificate form shows all PSP role checkboxes pre-checked' do
+    scenario 'CA Certificate option includes the CN field from the subject' do
+      visit new_qseal_certificate_admin_provider_path(provider)
+      expect(page).to have_select('CA Certificate', with_options: ['CN: SaltEdge CA Authority'])
+    end
+
+    scenario 'New QSeal certificate form shows all PSP role checkboxes pre-checked with full labels' do
       visit new_qseal_certificate_admin_provider_path(provider)
       QsealCertificate::PSP_ROLES.each_key do |code|
         expect(page).to have_checked_field(code, visible: :any)
+        expect(page).to have_content(QsealCertificate::PSP_ROLE_LABELS[code])
       end
     end
 
     scenario 'Admin can create a QSeal certificate from the provider show page' do
       visit new_qseal_certificate_admin_provider_path(provider)
-      fill_in 'Certificate Name', with: 'My QSeal Cert'
+      fill_in 'Name', with: 'My QSeal Cert'
       click_button 'Create QSeal Certificate'
       expect(page).to have_content('QSeal certificate created successfully.')
       qseal = QsealCertificate.last
@@ -177,7 +183,7 @@ RSpec.describe 'Admin Provider management', type: :feature do
       visit new_qseal_certificate_admin_provider_path(provider)
       expect(page).to have_content("Create a QSeal Certificate for #{provider.name}")
       # The select should be present but empty
-      expect(page).to have_select('CA Certificate (for signing)')
+      expect(page).to have_select('CA Certificate')
     end
   end
 end

@@ -1,27 +1,42 @@
 <h3>Create a QSeal Certificate for <%= @provider.name %></h3>
 
 <%= form_with url: create_qseal_certificate_admin_provider_path(@provider), method: :post, local: true do |f| %>
-  <div class="input">
-    <%= f.label :name, 'Certificate Name' %><br>
-    <%= f.text_field :name, value: "#{@provider.name} QSeal", required: true %>
-  </div>
-  <div class="input">
-    <%= f.label :ca_certificate_id, 'CA Certificate (for signing)' %><br>
-    <%= f.select :ca_certificate_id,
-                 @ca_certificates.map { |c| ["#{c.name} — serial #{c.serial_number}", c.id] },
-                 { selected: @ca_certificates.one? ? @ca_certificates.first.id : nil,
-                   prompt: 'Select a CA Certificate' },
-                 { required: true } %>
-  </div>
-  <div class="input">
-    <label>PSP Roles</label><br>
-    <% QsealCertificate::PSP_ROLES.each do |code, oid| %>
-      <label style="display:inline-block; margin-right:1em;">
-        <%= check_box_tag 'roles[]', code, true %> <strong><%= code %></strong>
-        <span style="color:#666; font-size:0.85em;">(<%= oid %>)</span>
-      </label>
+  <fieldset style="border:1px solid #ddd; border-radius:4px; padding:1em 1.25em; margin-bottom:1.25em;">
+    <legend style="font-weight:bold; padding:0 0.4em; color:#333;">Certificate Name</legend>
+    <div class="input">
+      <%= f.label :name, 'Name' %><br>
+      <%= f.text_field :name, value: "#{@provider.name} QSeal", required: true, style: 'width:100%; max-width:480px;' %>
+    </div>
+  </fieldset>
+
+  <fieldset style="border:1px solid #ddd; border-radius:4px; padding:1em 1.25em; margin-bottom:1.25em;">
+    <legend style="font-weight:bold; padding:0 0.4em; color:#333;">Signing CA Certificate</legend>
+    <div class="input">
+      <%= f.label :ca_certificate_id, 'CA Certificate' %><br>
+      <%= f.select :ca_certificate_id,
+                   @ca_cert_options,
+                   { selected: @ca_certificates.one? ? @ca_certificates.first.id : nil,
+                     prompt: 'Select a CA Certificate' },
+                   { required: true, style: 'width:100%; max-width:640px;' } %>
+    </div>
+  </fieldset>
+
+  <fieldset style="border:1px solid #ddd; border-radius:4px; padding:1em 1.25em; margin-bottom:1.25em;">
+    <legend style="font-weight:bold; padding:0 0.4em; color:#333;">PSP Roles</legend>
+    <p style="color:#666; font-size:0.9em; margin:0 0 0.75em;">
+      Select one or more PSD2 roles this certificate will declare. Most TPPs carry multiple roles.
+    </p>
+    <% QsealCertificate::PSP_ROLES.each_key do |code| %>
+      <div style="margin-bottom:0.5em;">
+        <label>
+          <%= check_box_tag 'roles[]', code, true %>
+          <strong><%= code %></strong>
+          <span style="color:#555;">(<%= QsealCertificate::PSP_ROLE_LABELS[code] %>)</span>
+        </label>
+      </div>
     <% end %>
-  </div>
+  </fieldset>
+
   <div class="actions">
     <%= f.submit 'Create QSeal Certificate', class: 'button' %>
     <%= link_to 'Cancel', admin_provider_path(@provider), class: 'button' %>
