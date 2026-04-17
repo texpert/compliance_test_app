@@ -19,5 +19,7 @@
 ## DB Conventions
 
 - Store selected role codes (e.g., `["PSP_AI", "PSP_PI"]`) in `qc_statement_data` (JSON column) —
-  never store OIDs directly in this column; the human-readable codes are sufficient for auditing.
-- `tsp_name` should reflect the company's official legal name (`official_name` if set, else `name`).
+  never store OIDs directly; the human-readable codes are sufficient for auditing.
+- `tsp_name` must be derived from the **CN** (fallback: O) of the signing CA certificate's subject
+  DN — **not** from the TPP company name. The TSP is the issuer, not the subject. Using the CA's CN
+  keeps `tsp_name` consistent with the `Issuer DN` embedded in the signed certificate PEM.

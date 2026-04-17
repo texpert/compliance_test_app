@@ -58,8 +58,39 @@ The `qcStatements` extension must be assembled manually as raw DER because OpenS
 `ExtensionFactory` does not know the ETSI-specific OIDs. Use `OpenSSL::ASN1::Sequence` and
 `OpenSSL::X509::Extension.new(oid, der_bytes, critical)`.
 
+## Trust Service Provider Name (tsp_name)
+
+The `tsp_name` identifies the entity that **issued** the QSeal certificate — not the TPP company
+that owns the certificate.
+
+In production, this is a Qualified Trust Service Provider (QTSP): a regulated body listed on the
+EU Trusted List (EUTL) that has been independently audited to issue qualified certificates. The QTSP
+vouches for the TPP's identity and PSD2 roles under eIDAS.
+
+### For test / sandbox certificates
+
+When the certificate is self-signed by a locally generated CA, the `tsp_name` should reflect that
+it is a test artifact. Derive it from the **CN** (or **O**) of the signing CA certificate's subject
+DN so it stays consistent with the `Issuer DN` field embedded in the signed certificate. Never
+use the TPP company name — that is the certificate *subject*, not the issuer.
+
+**Source rule:** `tsp_name = CN of CA certificate subject` (fallback to O, then Certificate#name).
+
+Example: if the CA certificate has `CN=SaltEdge CA Authority, O=SaltEdgeCA, C=RO`, then
+`tsp_name = "SaltEdge CA Authority"`.
+
+### Why consistency matters
+
+Any relying party (e.g., a payment gateway or verifier) that validates the certificate chain will
+compare the `Issuer DN` in the signed cert against a trusted list. Storing the CA's CN in
+`tsp_name` makes it straightforward to trace which CA signed each QSeal cert without parsing PEM.
+
 ## DB Storage
 
 `QsealCertificate#qc_statement_data` stores the selected PSD2 role codes as a JSON array
 (e.g., `["PSP_AI", "PSP_PI"]`). The OID details are embedded in the certificate's `qcStatements`
 extension; the DB column is for auditing and fast role-based lookups without parsing the certificate.
+
+`QsealCertificate#tsp_name` stores the CN (or O) from the signing CA certificate's subject DN.
+For test certs this will be something like `"SaltEdge CA Authority"`; for production it would be
+the QTSP's legal name as it appears on the EUTL.

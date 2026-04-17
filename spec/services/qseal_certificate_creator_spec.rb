@@ -70,10 +70,12 @@ RSpec.describe QsealCertificateCreator do
       expect(cert.status).to eq('issued')
     end
 
-    it 'sets tsp_name from company name' do
+    it 'derives tsp_name from the CA certificate subject CN' do
       _cert, qseal = result
-      expected = provider.company.official_name.presence || provider.company.name
-      expect(qseal.tsp_name).to eq(expected)
+      ca_parsed = OpenSSL::X509::Certificate.new(ca_cert_record.pem_content)
+      cn = ca_parsed.subject.to_a.find { |name, _, _| name == 'CN' }&.at(1)
+      expect(qseal.tsp_name).to eq(cn)
+      expect(qseal.tsp_name).to include('SaltEdge CA Authority')
     end
 
     it 'stores all PSP roles by default in qc_statement_data' do

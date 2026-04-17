@@ -28,15 +28,15 @@ class QsealCertificateCreator
     client_key = OpenSSL::PKey::RSA.new(2048)
     csr = build_csr(client_key, out_name)
 
-    ca_cert = OpenSSL::X509::Certificate.new(@ca_certificate.pem_content)
+    @parsed_ca_cert = OpenSSL::X509::Certificate.new(@ca_certificate.pem_content)
     ca_key = OpenSSL::PKey::RSA.new(@ca_certificate.private_key)
 
-    signed_cert = sign_certificate(csr, ca_cert, ca_key)
+    signed_cert = sign_certificate(csr, @parsed_ca_cert, ca_key)
 
     ActiveRecord::Base.transaction do
       qseal = QsealCertificate.create!(
         provider: @provider,
-        tsp_name: @provider.company.official_name.presence || @provider.company.name,
+        tsp_name: derive_tsp_name,
         qc_statement_data: @roles
       )
 
@@ -74,6 +74,12 @@ class QsealCertificateCreator
     request.public_key = key.public_key
     request.sign(key, OpenSSL::Digest::SHA256.new)
     request
+  end
+
+  def derive_tsp_name
+    cn = @parsed_ca_cert.subject.to_a.find { |name, _, _| name == 'CN' }&.at(1)
+    o  = @parsed_ca_cert.subject.to_a.find { |name, _, _| name == 'O' }&.at(1)
+    cn.presence || o.presence || @ca_certificate.name
   end
 
   def sign_certificate(csr, ca_cert, ca_key)
