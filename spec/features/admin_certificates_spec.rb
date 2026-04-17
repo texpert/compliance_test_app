@@ -163,3 +163,44 @@ RSpec.feature 'Admin Certificates Blank Slate', type: :feature do
     expect(cert.revocation_reason).to be_nil
   end
 end
+
+RSpec.feature 'Admin QSeal Certificate show page', type: :feature do
+  let!(:provider) { create(:provider) }
+  let!(:ca_cert_record) { CaRootCertificateCreator.create!(name: 'Test CA Root').first }
+  let!(:qseal_cert) do
+    QsealCertificateCreator.create!(
+      provider: provider,
+      ca_certificate: ca_cert_record,
+      name: 'My QSeal',
+      roles: %w[PSP_AI PSP_PI]
+    ).first
+  end
+
+  scenario 'QSeal certificate show page displays TSP Name after Status' do
+    visit "/admin/certificates/#{qseal_cert.id}"
+    expect(page).to have_content('TSP Name')
+    expect(page).to have_content(qseal_cert.certifiable.tsp_name)
+    # TSP Name row appears after Status in the attributes table
+    status_pos = page.body.index('Status')
+    tsp_pos    = page.body.index('TSP Name')
+    expect(tsp_pos).to be > status_pos
+  end
+
+  scenario 'QSeal certificate show page displays PSP Roles with full labels after Status' do
+    visit "/admin/certificates/#{qseal_cert.id}"
+    expect(page).to have_content('PSP Roles')
+    expect(page).to have_content('PSP_AI')
+    expect(page).to have_content('PSP_PI')
+    expect(page).to have_content(QsealCertificate::PSP_ROLES['PSP_AI'][:label])
+    expect(page).to have_content(QsealCertificate::PSP_ROLES['PSP_PI'][:label])
+    # Roles not selected should not appear in the PSP Roles row
+    # (they might appear elsewhere, so check the cell text directly via the row label)
+    expect(page).not_to have_content('PSP_AS (Account Servicing')
+  end
+
+  scenario 'CA Root certificate show page does not display TSP Name or PSP Roles rows' do
+    visit "/admin/certificates/#{ca_cert_record.id}"
+    expect(page).not_to have_content('TSP Name')
+    expect(page).not_to have_content('PSP Roles')
+  end
+end

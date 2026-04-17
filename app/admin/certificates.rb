@@ -72,6 +72,14 @@ ActiveAdmin.register Certificate do
       row :serial_number
       row :subject
       row :status
+      if resource.certifiable_type == 'QsealCertificate'
+        row(:tsp_name) { |c| c.certifiable.tsp_name }
+        row(:psp_roles) { |c|
+          c.certifiable.qc_statement_data.map { |code|
+            "#{code} (#{QsealCertificate::PSP_ROLES.dig(code, :label)})"
+          }.join(', ')
+        }
+      end
       row :not_before
       row :not_after
       row :created_at

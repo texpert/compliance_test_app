@@ -14,6 +14,40 @@ ActiveAdmin.register Provider do
     link_to 'Delete Provider', resource_path(resource),
             method: :delete, data: { confirm: 'Are you sure?' }
   end
+  action_item :new_qseal_certificate, only: :show do
+    link_to 'Create QSeal Certificate', new_qseal_certificate_admin_provider_path(resource)
+  end
+
+  member_action :new_qseal_certificate, method: :get do
+    @provider = resource
+    @ca_certificates = Certificate.where(certifiable_type: 'CaCertificate').order(:created_at)
+    @ca_cert_options = @ca_certificates.map do |c|
+      cn = c.subject.match(/CN=([^,\/]+)/)&.captures&.first&.strip
+      label = [c.name, cn.present? ? "CN: #{cn}" : nil, "serial #{c.serial_number}"].compact.join(' — ')
+      [label, c.id]
+    end
+    render 'admin/providers/new_qseal_certificate'
+  end
+
+  member_action :create_qseal_certificate, method: :post do
+    provider = resource
+    ca_certificate = Certificate.find_by(id: params[:ca_certificate_id])
+    unless ca_certificate
+      redirect_to admin_provider_path(provider), alert: 'CA Certificate not found.'
+      next
+    end
+
+    roles = Array(params[:roles]).select { |r| QsealCertificate::PSP_ROLES.key?(r) }
+    cert, _qseal = QsealCertificateCreator.create!(
+      provider: provider,
+      ca_certificate: ca_certificate,
+      name: params[:name].presence || "#{provider.name} QSeal",
+      roles: roles.any? ? roles : QsealCertificate::PSP_ROLES.keys
+    )
+    redirect_to [:admin, cert], notice: 'QSeal certificate created successfully.'
+  rescue => e
+    redirect_to admin_provider_path(provider), alert: "Failed to create QSeal certificate: #{e.message}"
+  end
 
   controller do
     def build_new_resource
@@ -65,6 +99,22 @@ ActiveAdmin.register Provider do
       row :code
       row :company
       row :representative
+    end
+
+    panel 'QSeal Certificates', id: 'qseal_certificates_panel' do
+      if resource.certificates.exists?
+        table_for resource.certificates.includes(:certifiable).order(created_at: :desc) do
+          column(:name) { |c| link_to c.name, [:admin, c] }
+          column('TSP Name') { |c| c.certifiable.tsp_name }
+          column :status
+          column :not_before
+          column :not_after
+        end
+      else
+        div class: 'blank_slate_container' do
+          span 'No QSeal certificates yet.', class: 'blank_slate'
+        end
+      end
     end
   end
 end
