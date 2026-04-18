@@ -39,14 +39,16 @@ The implementation must prioritize traceability, sanitized logging, and testabil
 
 ### Phase 2: Dependency, Configuration, and Core Signing Foundation
 - [x] Add `dotenv` support for local configuration (`gem "dotenv"`, dev/test) *(PR #14)*
-- [x] Add `ngrok-wrapper` gem for local callback tunneling required by SCA redirects *(PR #14)*
-  - [x] Gem source in `Gemfile`: `gem "ngrok-wrapper"`
+- [x] Add `ngrok-wrapper` gem for local callback tunneling required by SCA redirects *(PR #14, #32)*
+  - [x] Gem source in `Gemfile` (development group only): `gem "ngrok-wrapper"`
+  - [x] `gem 'localhost', require: 'localhost/authority'` added to development group for local SSL *(PR #32)*
   - [x] Upstream repository: https://github.com/texpert/ngrok-wrapper
-  - [x] Local checkout: `/Users/Shared/dev/ruby/ngrok-wrapper/`
-  - [x] Integration pattern reference: `/Users/Shared/dev/ruby/rails_6_rss_reader/`
-  - [x] Env-toggle contract from reference implementation: `NGROK_TUNNEL` (`true` enables tunnel)
+  - [x] Env-toggle contract: `NGROK_TUNNEL` (`true` enables tunnel)
   - [x] Optional ngrok config path env: `NGROK_CONFIG` (default `~/.ngrok2/ngrok.yml`)
   - [x] Optional ngrok inspector env: `NGROK_INSPECT` (`true` enables local inspector)
+  - [x] `NGROK_ENABLED` constant defined in `config/application.rb` after `Bundler.require` *(PR #32)*
+  - [x] Tunnel started in `config/environments/development.rb` with `persistence: true` *(PR #32)*
+  - [x] Puma bound to `ssl://localhost:3000` when `NGROK_ENABLED` (`config/puma.rb`) *(PR #32)*
 - [x] Enforce a shared `httpx`-based `HttpxClient` implementation using `Rails.logger` for all logging *(PR #14)*
 - [x] Apply namespacing only where domain-specific: *(PR #14, #17)*
   - [x] Keep universal `HttpxClient` un-namespaced
@@ -60,50 +62,81 @@ The implementation must prioritize traceability, sanitized logging, and testabil
 
 To support SCA redirects during local development, the project uses the `ngrok-wrapper` gem to manage an ngrok tunnel. The goal is to make tunneling opt-in (env-controlled) and reproducible.
 
-Implementation notes:
-- Add the gem to `Gemfile` (development only):
+**Gems required** (`group :development` in `Gemfile`):
 
 ```ruby
 group :development do
+  gem 'localhost', require: 'localhost/authority'  # local SSL for Puma
   gem 'ngrok-wrapper'
 end
 ```
 
-- Recommended env vars (already used elsewhere):
-  - `NGROK_TUNNEL` (default `false`) — when `true`, enable the tunnel at dev boot
-  - `NGROK_CONFIG` (default `~/.ngrok2/ngrok.yml`) — optional config path
-  - `NGROK_INSPECT` (default `false`) — when `true`, enables the ngrok inspector
+**Env vars** (set in `.env` or shell — see `.env.example`):
+- `NGROK_TUNNEL` (default `false`) — when `true`, enables tunnel at server boot
+- `NGROK_CONFIG` (default `~/.ngrok2/ngrok.yml`) — ngrok config file path; authtoken should live here
+- `NGROK_INSPECT` (default `false`) — when `true`, enables the ngrok web inspector
 
-- Example initializer (`config/initializers/ngrok.rb`):
+**`config/application.rb`** — `NGROK_ENABLED` constant defined after `Bundler.require`, available to all subsequent config files:
 
 ```ruby
-if ENV['NGROK_TUNNEL'] == 'true' && Rails.env.development?
+NGROK_ENABLED = Rails.env.development? &&
+                (Rails.const_defined?(:Server) || ($PROGRAM_NAME.include?('puma') && Puma.const_defined?(:Server))) &&
+                ENV['NGROK_TUNNEL'] == 'true'
+```
+
+The server-process guard prevents ngrok from starting during `rspec`, `rake`, or `rails console`.
+
+**`config/environments/development.rb`** — tunnel started before `Rails.application.configure`:
+
+```ruby
+if NGROK_ENABLED
   require 'ngrok/wrapper'
 
-  Ngrok::Wrapper.start(
-    authtoken: ENV['NGROK_AUTHTOKEN'],
-    config: ENV.fetch('NGROK_CONFIG', File.expand_path('~/.ngrok2/ngrok.yml')),
-    inspect: ENV['NGROK_INSPECT'] == 'true'
-  )
+  options = { addr: 'https://localhost:3000', persistence: true }
+  options[:config]  = ENV.fetch('NGROK_CONFIG', "#{Dir.home}/.ngrok2/ngrok.yml")
+  options[:inspect] = ENV['NGROK_INSPECT'] == 'true'
 
-  Rails.logger.info("ngrok tunnel started: #{Ngrok::Wrapper.status}")
+  NGROK_URL = Ngrok::Wrapper.start(options)
+  $stdout.puts "[NGROK] tunnel started at #{NGROK_URL}"
+  $stdout.puts '[NGROK] inspector at http://127.0.0.1:4040' if ENV['NGROK_INSPECT'] == 'true'
+end
+
+Rails.application.configure do
+  # ...
+  if NGROK_ENABLED
+    config.force_ssl = true
+    config.hosts << URI.parse(NGROK_URL).host
+  end
 end
 ```
 
-- Usage (local dev):
+`persistence: true` reuses an existing ngrok process across server restarts (state stored alongside the ngrok config file). `addr: 'https://localhost:3000'` is required because Puma serves SSL locally when the tunnel is active.
 
-```bash
-# enable tunnel for a single shell
-export NGROK_TUNNEL=true
-export NGROK_AUTHTOKEN=your_token_here
-bin/rails server
+**`config/puma.rb`** — SSL binding when tunnel is active:
 
-# or enable persistently in .env (dev only)
+```ruby
+if self.class.const_defined?(:NGROK_ENABLED) && NGROK_ENABLED
+  bind 'ssl://localhost:3000'
+else
+  port ENV.fetch("PORT", 3000)
+end
 ```
 
-- Notes:
-  - Keep NGROK_TUNNEL disabled by default to preserve deterministic local startup for CI and reviewers.
-  - The initializer above is intentionally minimal — the reference implementation in `/Users/Shared/dev/ruby/rails_6_rss_reader/` provides a production-quality pattern; copy specifics if needed.
+The `self.class.const_defined?` guard prevents a `NameError` when puma.rb is evaluated before `application.rb` in some boot paths.
+
+**Usage**:
+
+```bash
+# enable for a single shell session
+NGROK_TUNNEL=true bin/rails server
+
+# or set persistently in .env (never commit)
+NGROK_TUNNEL=true
+```
+
+**Notes:**
+- Keep `NGROK_TUNNEL=false` (the default) to preserve deterministic local startup for CI and other developers.
+- The ngrok authtoken must be present in the ngrok config file (`~/.ngrok2/ngrok.yml`) — it is not passed as an env var.
 
 ### Phase 3: Service Layer
 - [x] Implement Salt Edge request adapter on top of `HttpxClient` with timeout/error normalization *(PR #17)*
@@ -282,7 +315,7 @@ This phase uses **ActiveAdmin** (without user authentication/authorization) as t
 
 ## Finalized Decisions
 - `ngrok-wrapper` is mandatory in dependencies, but tunnel runtime behavior is optional and env-controlled
-- Follow `/Users/Shared/dev/ruby/rails_6_rss_reader/` env naming for tunnel control: `NGROK_TUNNEL`, `NGROK_CONFIG`, `NGROK_INSPECT`
+- Env vars for tunnel control: `NGROK_TUNNEL`, `NGROK_CONFIG`, `NGROK_INSPECT`
 - Keep tunnel disabled by default (`NGROK_TUNNEL=false`) to preserve deterministic local startup
 - Use SHA-256 certificate fingerprint for `Signature` `keyId` generation in `SaltEdge::SignatureBuilder`
 - Use `/v1/...` endpoint paths as canonical request-path baseline and validate against live sandbox behavior
