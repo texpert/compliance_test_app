@@ -17,7 +17,6 @@ gem 'jbuilder' # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem 'jwt'
 # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
 gem 'kamal', require: false
-gem 'ngrok-wrapper'
 gem 'puma', '>= 5.0'
 gem 'rest-client'
 gem 'jquery-rails'
@@ -59,6 +58,8 @@ end
 
 group :development do
   gem 'annotaterb', require: false
+  gem 'localhost', require: 'localhost/authority'
+  gem 'ngrok-wrapper'
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem 'web-console'
 end

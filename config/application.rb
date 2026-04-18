@@ -40,3 +40,7 @@ module ComplianceTestApp
     config.generators.system_tests = nil
   end
 end
+
+NGROK_ENABLED = Rails.env.development? &&
+                (Rails.const_defined?(:Server) || ($PROGRAM_NAME.include?('puma') && Puma.const_defined?(:Server))) &&
+                ENV['NGROK_TUNNEL'] == 'true'
