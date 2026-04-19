@@ -37,7 +37,7 @@ class AisConsentsController < ApplicationController
       callback_params: {}
     )
 
-    consent_response = consent_service.create_and_persist_consent(consent: consent)
+    consent_response = consent_service(provider).create_and_persist_consent(consent: consent)
 
     begin
       Event.record(
@@ -91,7 +91,7 @@ class AisConsentsController < ApplicationController
 
   private
 
-  def consent_service
-    @consent_service ||= SaltEdge::ConsentService.new
+  def consent_service(provider)
+    @consent_service ||= SaltEdge::ConsentService.new(certificate: provider.latest_qseal_cert)
   end
 end

@@ -36,8 +36,7 @@ RSpec.describe SaltEdge::RequestAdapter do
       result = adapter.request(
         method: :post,
         path: '/v1/consents',
-        body: { foo: 'bar' },
-        headers: { 'Content-Type' => 'application/json' }
+        body: { foo: 'bar' }
       )
 
       expect(result).to be_a(SaltEdge::RequestResult)

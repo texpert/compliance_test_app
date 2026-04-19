@@ -16,9 +16,9 @@ module SaltEdge
   class TransactionsService
     DEFAULT_DATE_RANGE_DAYS = 30
 
-    def initialize(config: SaltEdge::Config.new, request_adapter: SaltEdge::RequestAdapter.new)
+    def initialize(config: SaltEdge::Config.new, request_adapter: nil, certificate: nil)
       @config = config
-      @request_adapter = request_adapter
+      @request_adapter = request_adapter || build_adapter(certificate)
     end
 
     def transactions(account_id:, consent_id:, date_from: nil, date_to: nil, booking_status: 'both')
@@ -36,6 +36,11 @@ module SaltEdge
     end
 
     private
+
+    def build_adapter(certificate)
+      signer = SaltEdge::SignatureBuilder.new(certificate: certificate)
+      SaltEdge::RequestAdapter.new(signer: signer)
+    end
 
     def transactions_path(account_id, date_from, date_to, booking_status)
       "/v1/accounts/#{CGI.escape(account_id.to_s)}/transactions" \

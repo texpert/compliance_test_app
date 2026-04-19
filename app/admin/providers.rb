@@ -17,6 +17,11 @@ ActiveAdmin.register Provider do
   action_item :new_qseal_certificate, only: :show do
     link_to 'Create QSeal Certificate', new_qseal_certificate_admin_provider_path(resource)
   end
+  action_item :register_tpp, only: :show do
+    if resource.certificates.where(certifiable_type: 'QsealCertificate', status: 'issued').exists?
+      link_to 'Register TPP', new_tpp_registration_admin_provider_path(resource)
+    end
+  end
 
   member_action :new_qseal_certificate, method: :get do
     @provider = resource
@@ -47,6 +52,39 @@ ActiveAdmin.register Provider do
     redirect_to [:admin, cert], notice: 'QSeal certificate created successfully.'
   rescue => e
     redirect_to admin_provider_path(provider), alert: "Failed to create QSeal certificate: #{e.message}"
+  end
+
+  member_action :new_tpp_registration, method: :get do
+    @provider = resource
+    @company = @provider.company
+    @company_users = @company.users.order(:name)
+    @issued_certs = @provider.certificates
+                             .where(certifiable_type: 'QsealCertificate', status: 'issued')
+                             .order(created_at: :desc)
+    @default_representative_id = @company_users.count == 1 ? @company_users.first.id : @provider.representative_id
+    render 'admin/providers/new_tpp_registration'
+  end
+
+  member_action :create_tpp_registration, method: :post do
+    provider = resource
+    representative = User.find_by(id: params[:representative_id])
+    unless representative
+      redirect_to new_tpp_registration_admin_provider_path(provider), alert: 'Representative not found.'
+      next
+    end
+
+    certificate = provider.certificates.find_by(id: params[:certificate_id])
+
+    service = SaltEdge::ProviderRegistrationService.new
+    result  = service.register(provider: provider, representative: representative, certificate: certificate)
+
+    if result.success?
+      redirect_to admin_provider_path(provider),
+                  notice: 'TPP registration request submitted successfully. A confirmation email will be sent to the representative.'
+    else
+      redirect_to admin_provider_path(provider),
+                  alert: "TPP registration request failed: #{result.error.message}"
+    end
   end
 
   controller do
@@ -99,6 +137,8 @@ ActiveAdmin.register Provider do
       row :code
       row :company
       row :representative
+      row('Registration Request Sent') { |p| p.registration_request_sent_at&.strftime('%Y-%m-%d %H:%M UTC') || '—' }
+      row('Registered At') { |p| p.registered_at&.strftime('%Y-%m-%d %H:%M UTC') || '—' }
     end
 
     panel 'QSeal Certificates', id: 'qseal_certificates_panel' do
@@ -113,6 +153,30 @@ ActiveAdmin.register Provider do
       else
         div class: 'blank_slate_container' do
           span 'No QSeal certificates yet.', class: 'blank_slate'
+        end
+      end
+    end
+
+    panel 'TPP Registration Events', id: 'tpp_registration_events_panel' do
+      registration_events = resource.events.where(event_type: 'tpp_registration_request').order(occurred_at: :desc)
+      if registration_events.exists?
+        table_for registration_events do
+          column('Occurred At') { |e| e.occurred_at.strftime('%Y-%m-%d %H:%M UTC') }
+          column('Response') do |e|
+            status = e.response_body['status'] || e.response_body.dig('data', 'status')
+            error  = e.response_body['error']
+            if error
+              span error, style: 'color: #c0392b;'
+            elsif status
+              span status
+            else
+              span '✓ Success', style: 'color: #27ae60;'
+            end
+          end
+        end
+      else
+        div class: 'blank_slate_container' do
+          span 'No registration requests sent yet.', class: 'blank_slate'
         end
       end
     end

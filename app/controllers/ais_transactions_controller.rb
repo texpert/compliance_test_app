@@ -7,14 +7,17 @@ class AisTransactionsController < ApplicationController
   # GET /ais/consents/:id/accounts/:account_id/transactions
   # account_id can be omitted (consent-level route) to auto-derive from first account
   def index
+    cert = @consent.provider.latest_qseal_cert
     account_id = params[:account_id]
     if account_id.blank?
-      accounts = SaltEdge::AccountsService.new.accounts(consent_id: @consent.upstream_consent_id)
+      accounts = SaltEdge::AccountsService.new(certificate: cert)
+                                          .accounts(consent_id: @consent.upstream_consent_id)
       account_id = accounts.first&.fetch('resourceId', nil)
       return render(json: { error: 'no_account_available' }, status: :unprocessable_content) unless account_id
     end
 
-    transactions = SaltEdge::TransactionsService.new.transactions(account_id: account_id, consent_id: @consent.upstream_consent_id)
+    transactions = SaltEdge::TransactionsService.new(certificate: cert)
+                                                .transactions(account_id: account_id, consent_id: @consent.upstream_consent_id)
 
     Event.record(
       event_type: 'transactions_fetch',

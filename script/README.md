@@ -36,11 +36,11 @@ When a new version of either original arrives: update `script/originals/`, then 
 
 ## Prerequisites
 - Populate `.env` from `.env.example`.
-- Ensure certificate paths in `.env` point to local files outside git.
-- For one-off retries against a fresh attempt folder, you can override QSEAL paths inline without editing `.env`:
-  - `SE_QSEAL_CERT_PATH=/abs/path/client_signed_certifcate.crt`
-  - `SE_QSEAL_KEY_PATH=/abs/path/client_private.key`
-  - `SE_QSEAL_PUBLIC_KEY_PATH=/abs/path/client_public.key`
+- Ensure `SE_QSEAL_CERT_PATH`, `SE_QSEAL_KEY_PATH`, and `SE_QSEAL_PUBLIC_KEY_PATH` in `.env` point to
+  local cert/key files outside git. These are only used by the shell scripts — not by the Rails app
+  (the Rails app reads certs from the DB).
+- For one-off retries against a fresh attempt folder, override inline without editing `.env`:
+  - `SE_QSEAL_CERT_PATH=/abs/path/client_signed_certifcate.crt script/tpp_register_replay_success_shape.sh`
 
 ## Run
 ```bash

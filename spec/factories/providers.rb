@@ -4,13 +4,15 @@
 #
 # Table name: providers
 #
-#  id                :integer          not null, primary key
-#  code              :string           not null
-#  name              :string           not null
-#  created_at        :datetime         not null
-#  updated_at        :datetime         not null
-#  company_id        :integer          not null
-#  representative_id :integer          not null
+#  id                           :integer          not null, primary key
+#  code                         :string           not null
+#  name                         :string           not null
+#  registered_at                :datetime
+#  registration_request_sent_at :datetime
+#  created_at                   :datetime         not null
+#  updated_at                   :datetime         not null
+#  company_id                   :integer          not null
+#  representative_id            :integer          not null
 #
 # Indexes
 #

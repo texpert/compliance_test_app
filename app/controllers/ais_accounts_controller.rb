@@ -6,7 +6,8 @@ class AisAccountsController < ApplicationController
 
   # GET /ais/consents/:id/accounts
   def index
-    accounts = SaltEdge::AccountsService.new.accounts(consent_id: @consent.upstream_consent_id)
+    accounts = SaltEdge::AccountsService.new(certificate: @consent.provider.latest_qseal_cert)
+                                        .accounts(consent_id: @consent.upstream_consent_id)
 
     Event.record(
       event_type: 'accounts_fetch',

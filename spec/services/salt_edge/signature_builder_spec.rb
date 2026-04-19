@@ -1,44 +1,16 @@
 # frozen_string_literal: true
 
 RSpec.describe SaltEdge::SignatureBuilder do
-  let(:config) do
-    double(SaltEdge::Config,
-           qseal_cert_path: Rails.root.join('spec/fixtures/test-cert.pem').to_s,
-           qseal_key_path: Rails.root.join('spec/fixtures/test-key.pem').to_s,
-           qseal_key_passphrase: 'test-passphrase')
+  let(:company)  { create(:company) }
+  let(:user)     { create(:user) }
+  let(:provider) { create(:provider, company: company, representative: user) }
+
+  let(:ca_cert) { CaRootCertificateCreator.create!(key_size: 1024).first }
+  let(:certificate) do
+    QsealCertificateCreator.create!(provider: provider, ca_certificate: ca_cert, name: 'Test QSeal').first
   end
 
-  subject(:builder) { described_class.new(config) }
-
-  before do
-    # Create minimal test fixtures (self-signed cert + key)
-    generate_test_cert_and_key
-  end
-
-  def generate_test_cert_and_key
-    fixtures_dir = Rails.root.join('spec/fixtures')
-    FileUtils.mkdir_p(fixtures_dir)
-
-    # Generate a test RSA key
-    key = OpenSSL::PKey::RSA.new(2048)
-    key_file = fixtures_dir.join('test-key.pem')
-    File.write(key_file, OpenSSL::PKey::RSA.new(key).export(OpenSSL::Cipher.new('AES-256-CBC'), 'test-passphrase'))
-
-    # Generate a self-signed certificate
-    subject = OpenSSL::X509::Name.parse('/C=US/O=Test/CN=test.example.com')
-    cert = OpenSSL::X509::Certificate.new
-    cert.version = 2
-    cert.serial = 1
-    cert.subject = subject
-    cert.issuer = subject
-    cert.public_key = key.public_key
-    cert.not_before = Time.current
-    cert.not_after = Time.current + 365 * 24 * 3600
-    cert.sign(key, OpenSSL::Digest.new('SHA256'))
-
-    cert_file = fixtures_dir.join('test-cert.pem')
-    File.write(cert_file, cert.to_pem)
-  end
+  subject(:builder) { described_class.new(certificate: certificate) }
 
   describe '#build_headers' do
     it 'returns a hash with required signing headers' do
@@ -69,7 +41,6 @@ RSpec.describe SaltEdge::SignatureBuilder do
 
       digest = headers['Digest']
       expect(digest).to match(/^SHA-256=/)
-      # SHA-256 of "test body" is specific
       expect(digest).to be_a(String)
       expect(digest.length).to be > 10
     end
@@ -80,9 +51,7 @@ RSpec.describe SaltEdge::SignatureBuilder do
         path: '/v1/accounts'
       )
 
-      digest = headers['Digest']
-      # SHA-256 of empty string = 47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=
-      expect(digest).to eq('SHA-256=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=')
+      expect(headers['Digest']).to eq('SHA-256=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=')
     end
 
     it 'generates a valid Signature header with keyId, algorithm, headers, signature' do
@@ -94,9 +63,10 @@ RSpec.describe SaltEdge::SignatureBuilder do
       )
 
       signature = headers['Signature']
-      expect(signature).to include('keyId="')
+      expect(signature).to start_with('Signature keyId="SN=')
+      expect(signature).to include(',DN=')
       expect(signature).to include('algorithm="rsa-sha256"')
-      expect(signature).to include('headers="(request-target) date x-request-id digest"')
+      expect(signature).to include('headers="digest date x-request-id"')
       expect(signature).to include('signature="')
     end
 
@@ -137,7 +107,6 @@ RSpec.describe SaltEdge::SignatureBuilder do
 
       cert_b64 = headers['TPP-Signature-Certificate']
       expect(cert_b64).to be_a(String)
-      # Should be valid base64
       expect { Base64.strict_decode64(cert_b64) }.not_to raise_error
     end
   end
@@ -146,7 +115,6 @@ RSpec.describe SaltEdge::SignatureBuilder do
     it 'returns SHA-256=<base64> for a non-empty body' do
       digest = builder.send(:build_digest, 'hello world')
       expect(digest).to start_with('SHA-256=')
-      # SHA-256 base64 should be ~43 chars (256 bits / 8 * 4/3)
       expect(digest.length).to be > 40
     end
 
@@ -156,18 +124,14 @@ RSpec.describe SaltEdge::SignatureBuilder do
     end
   end
 
-  describe '#certificate_fingerprint' do
-    it 'returns a hex-formatted SHA-256 fingerprint' do
-      fingerprint = builder.send(:certificate_fingerprint)
-      expect(fingerprint).to be_a(String)
-      # SHA-256 fingerprint should be 64 hex chars (256 bits / 4)
-      expect(fingerprint).to match(/^[a-f0-9]{64}$/)
+  describe '#certificate_key_id' do
+    it 'returns SN=<serial>,DN=<issuer> format' do
+      key_id = builder.send(:certificate_key_id)
+      expect(key_id).to match(/^SN=\d+,DN=/)
     end
 
-    it 'returns consistent fingerprint on multiple calls' do
-      fp1 = builder.send(:certificate_fingerprint)
-      fp2 = builder.send(:certificate_fingerprint)
-      expect(fp1).to eq(fp2)
+    it 'returns consistent key_id on multiple calls' do
+      expect(builder.send(:certificate_key_id)).to eq(builder.send(:certificate_key_id))
     end
   end
 
@@ -177,37 +141,19 @@ RSpec.describe SaltEdge::SignatureBuilder do
       body = '{"test":"payload"}'
       request_id = 'test-123'
 
-      headers1 = builder.build_headers(
-        method: 'POST',
-        path: '/v1/consents',
-        body: body,
-        request_id: request_id,
-        date: date
-      )
-
-      headers2 = builder.build_headers(
-        method: 'POST',
-        path: '/v1/consents',
-        body: body,
-        request_id: request_id,
-        date: date
-      )
+      headers1 = builder.build_headers(method: 'POST', path: '/v1/consents', body: body, request_id: request_id, date: date)
+      headers2 = builder.build_headers(method: 'POST', path: '/v1/consents', body: body, request_id: request_id, date: date)
 
       expect(headers1['Digest']).to eq(headers2['Digest'])
       expect(headers1['Signature']).to eq(headers2['Signature'])
       expect(headers1['Date']).to eq(headers2['Date'])
     end
 
-    it 'produces different signatures for different request paths' do
-      headers1 = builder.build_headers(
-        method: 'POST',
-        path: '/v1/consents'
-      )
-
-      headers2 = builder.build_headers(
-        method: 'POST',
-        path: '/v1/accounts'
-      )
+    it 'produces different signatures for different request bodies' do
+      date = Time.parse('2026-04-10 12:00:00 UTC')
+      rid = 'test-id'
+      headers1 = builder.build_headers(method: 'POST', path: '/v1/consents', body: '{"a":1}', request_id: rid, date: date)
+      headers2 = builder.build_headers(method: 'POST', path: '/v1/consents', body: '{"a":2}', request_id: rid, date: date)
 
       expect(headers1['Signature']).not_to eq(headers2['Signature'])
     end

@@ -2,12 +2,14 @@
 
 module SaltEdge
   class RequestResult
-    attr_reader :status, :data, :error
+    attr_reader :status, :data, :error, :request_headers, :response_headers
 
-    def initialize(status:, data: {}, error: nil)
-      @status = status
-      @data = data
-      @error = error
+    def initialize(status:, data: {}, error: nil, request_headers: {}, response_headers: {})
+      @status           = status
+      @data             = data
+      @error            = error
+      @request_headers  = request_headers  || {}
+      @response_headers = response_headers || {}
     end
 
     def success?

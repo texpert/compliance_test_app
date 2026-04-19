@@ -148,28 +148,26 @@ NGROK_TUNNEL=true
 
 ### Phase 4: ActiveAdmin UI, Provider Management, and State Management
 
-# Certificate Management (Polymorphic, Secure, and Auditable)
-- [ ] Create a polymorphic `Certificate` model using Rails Delegated Types to support both CA and QSeal certificates
-- [ ] Implement asymmetric encryption for private key storage (e.g., using Rails encrypted attributes or a secure encryption gem)
-- [ ] Support self-referential chaining for CA hierarchies (parent-child relationships between certificates)
-- [ ] Integrate a state machine for certificate lifecycle management (e.g., `draft`, `active`, `revoked`, `expired`)
+#### Certificate Management (Polymorphic, Secure, and Auditable)
+- [x] Create a polymorphic `Certificate` model using Rails Delegated Types to support both CA and QSeal certificates
+- [x] Implement asymmetric encryption for private key storage (ActiveRecord::Encryption on `certificates.private_key`)
+- [x] Support self-referential chaining for CA hierarchies (parent-child via `certificates.parent_id`)
+- [x] Integrate a state machine for certificate lifecycle management (`draft`, `issued`, `revoked`, `expired`)
 - [ ] Expose certificate management actions in ActiveAdmin (create, activate, revoke, view chain)
-- [ ] Ensure all certificate operations are auditable and sensitive data is redacted in logs
+- [x] Ensure all certificate operations are auditable and sensitive data is redacted in logs
 
 This phase uses **ActiveAdmin** (without user authentication/authorization) as the sole UI layer for testing purposes. There is no separate orchestration controller and no dedicated start, callback, or result pages — all operator interactions happen through ActiveAdmin.
 
-- [ ] Add `gem "activeadmin"` (3.x) and `gem "dartsass-sprockets"` to `Gemfile`
-- [ ] Install ActiveAdmin without Devise (no authentication/authorization):
-  - [ ] Run `rails generate active_admin:install --skip-users`
-  - [ ] Ensure `config/initializers/active_admin.rb` sets `config.authentication_method = false` and `config.current_user_method = false`
-- [ ] Add `ngrok-wrapper` integration (see Phase 2) to provide a tunnel from localhost so the Salt Edge sandbox can deliver callback requests to the local dev server
+- [x] Add `gem "activeadmin"` (3.x) and `gem "dartsass-sprockets"` to `Gemfile`
+- [x] Install ActiveAdmin without Devise (no authentication/authorization)
+- [x] Add `ngrok-wrapper` integration (see Phase 2) to provide a tunnel from localhost so the Salt Edge sandbox can deliver callback requests to the local dev server
 
 #### Provider pages and actions
-- [ ] Create an ActiveAdmin `Provider` resource page with custom action items:
-  - [ ] **Generate QSeal certificate** — action button that invokes the QSeal generation logic (see `docs/qseal_generation_runbook.md`) and displays/stores the result
-  - [ ] **Register Provider** — action button that calls the Salt Edge provider registration endpoint via `SaltEdge::ProviderRegistrationService` and records the outcome
-- [ ] Implement `SaltEdge::ProviderRegistrationService` for upstream provider registration
-- [ ] Implement QSeal certificate generation service (or wrap existing script logic) callable from the admin UI
+- [x] Create an ActiveAdmin `Provider` resource page with custom action items:
+  - [x] **Generate QSeal certificate** — action button that invokes `QsealCertificateCreator` and stores the result
+  - [x] **Register TPP** — action button (shown when an issued QSeal cert exists) that calls `SaltEdge::ProviderRegistrationService`, records a `tpp_registration_request` Event with full request/response headers, and stamps `registration_request_sent_at` on success
+- [x] Implement `SaltEdge::ProviderRegistrationService` for upstream provider registration
+- [x] Implement `QsealCertificateCreator` service callable from the admin UI
 
 #### Consent pages and actions
 - [ ] Create an ActiveAdmin `Consent` resource with:
@@ -262,27 +260,31 @@ This phase uses **ActiveAdmin** (without user authentication/authorization) as t
 - `docs/ais_flow_sequence.md`
   - Fill reproducible happy-path evidence structure with implementation details
 
-## Environment Variable Contract (Draft)
+## Environment Variable Contract
 
-### Required
+### Required (Rails app)
 - `SE_API_BASE_URL`
-- `SE_QSEAL_CERT_PATH`
-- `SE_QSEAL_KEY_PATH`
 - `SE_CALLBACK_BASE_URL`
 - `SE_REDIRECT_URI`
 
-### Conditionally Required (depends on portal credentials)
+### Conditionally Required
 - `SE_CLIENT_ID`
 - `SE_CLIENT_SECRET`
-- `SE_QSEAL_KEY_PASSPHRASE`
 
 ### Optional With Defaults
-- `SE_HTTP_TIMEOUT_SECONDS` (default via app config)
+- `SE_HTTP_TIMEOUT_SECONDS` (default: 30)
 - `SE_PSU_IP_ADDRESS` (optional unless endpoint requires)
-- date-range defaults for transaction queries
 - `NGROK_TUNNEL=false` (optional tunnel toggle; set `true` to enable)
 - `NGROK_CONFIG=$HOME/.ngrok2/ngrok.yml` (optional ngrok config path)
 - `NGROK_INSPECT` (optional; set `true` to enable ngrok inspector)
+
+### Shell Scripts Only (not read by Rails)
+- `SE_QSEAL_CERT_PATH` — path to signed cert file, used by `script/` helpers
+- `SE_QSEAL_KEY_PATH` — path to private key file, used by `script/` helpers
+- `SE_QSEAL_PUBLIC_KEY_PATH` / `SE_QSEAL_P12_PATH` — supplemental script inputs
+
+**Rails reads QSeal certs from the DB** (`certificates` table, encrypted private key via
+ActiveRecord::Encryption). The file-path env vars are not wired into `SaltEdge::Config`.
 
 ### Secrets Handling
 - Use local env storage only (no secrets in git)

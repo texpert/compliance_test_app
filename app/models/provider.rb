@@ -4,13 +4,15 @@
 #
 # Table name: providers
 #
-#  id                :integer          not null, primary key
-#  code              :string           not null
-#  name              :string           not null
-#  created_at        :datetime         not null
-#  updated_at        :datetime         not null
-#  company_id        :integer          not null
-#  representative_id :integer          not null
+#  id                           :integer          not null, primary key
+#  code                         :string           not null
+#  name                         :string           not null
+#  registered_at                :datetime
+#  registration_request_sent_at :datetime
+#  created_at                   :datetime         not null
+#  updated_at                   :datetime         not null
+#  company_id                   :integer          not null
+#  representative_id            :integer          not null
 #
 # Indexes
 #
@@ -39,8 +41,12 @@ class Provider < ApplicationRecord
   validates :company, presence: true
   validates :representative, presence: true
 
+  def latest_qseal_cert
+    certificates.where(certifiable_type: 'QsealCertificate', status: 'issued').order(:created_at).last
+  end
+
   def self.ransackable_attributes(auth_object = nil)
-    %w[id name code company_id representative_id created_at updated_at]
+    %w[id name code company_id representative_id registered_at registration_request_sent_at created_at updated_at]
   end
 
   def self.ransackable_associations(auth_object = nil)
