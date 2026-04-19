@@ -1,0 +1,56 @@
+<h3>Register TPP: <%= @provider.name %></h3>
+
+<% if @issued_certs.none? %>
+  <div class="flash flash_error" style="margin-bottom:1em;">
+    No issued QSeal certificate found for this provider. Please generate one before registering.
+  </div>
+  <%= link_to 'Back', admin_provider_path(@provider), class: 'button' %>
+<% else %>
+  <fieldset style="border:1px solid #ddd; border-radius:4px; padding:1em 1.25em; margin-bottom:1.25em;">
+    <legend style="font-weight:bold; padding:0 0.4em; color:#333;">Company Details (read-only)</legend>
+    <table style="width:100%; border-collapse:collapse;">
+      <% [['Name', @company.name], ['Email', @company.email], ['Address', @company.address],
+          ['City', @company.city], ['Zip Code', @company.zip_code], ['Phone', @company.phone_number]].each do |label, value| %>
+        <tr>
+          <td style="padding:0.3em 0.75em 0.3em 0; color:#555; width:140px;"><%= label %></td>
+          <td style="padding:0.3em 0;"><%= value %></td>
+        </tr>
+      <% end %>
+    </table>
+  </fieldset>
+
+  <%= form_with url: create_tpp_registration_admin_provider_path(@provider), method: :post, local: true do |f| %>
+    <fieldset style="border:1px solid #ddd; border-radius:4px; padding:1em 1.25em; margin-bottom:1.25em;">
+      <legend style="font-weight:bold; padding:0 0.4em; color:#333;">Company Representative</legend>
+      <p style="color:#666; font-size:0.9em; margin:0 0 0.75em;">
+        Salt Edge will send the registration confirmation email to this person.
+      </p>
+      <div class="input">
+        <%= f.label :representative_id, 'Representative' %><br>
+        <%= f.select :representative_id,
+                     @company_users.map { |u| ["#{u.name} (#{u.email})", u.id] },
+                     { selected: @default_representative_id, prompt: (@company_users.count != 1 ? 'Select a representative' : nil) },
+                     { required: true, style: 'width:100%; max-width:480px;' } %>
+      </div>
+    </fieldset>
+
+    <fieldset style="border:1px solid #ddd; border-radius:4px; padding:1em 1.25em; margin-bottom:1.25em;">
+      <legend style="font-weight:bold; padding:0 0.4em; color:#333;">QSeal Certificate</legend>
+      <p style="color:#666; font-size:0.9em; margin:0 0 0.75em;">
+        The PEM content of this certificate will be sent to Salt Edge as the TPP identity.
+      </p>
+      <div class="input">
+        <%= f.label :certificate_id, 'Certificate' %><br>
+        <%= f.select :certificate_id,
+                     @issued_certs.map { |c| ["#{c.name} (serial #{c.serial_number}, expires #{c.not_after&.strftime('%Y-%m-%d')})", c.id] },
+                     { selected: @issued_certs.first.id },
+                     { required: true, style: 'width:100%; max-width:640px;' } %>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <%= f.submit 'Submit Registration Request', class: 'button' %>
+      <%= link_to 'Cancel', admin_provider_path(@provider), class: 'button' %>
+    </div>
+  <% end %>
+<% end %>
