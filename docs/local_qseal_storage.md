@@ -28,8 +28,10 @@ chmod 600 "./secrets/qseal/guide_YYYY-MM-DD-<attempt-tag>/client_signed_certifca
 chmod 600 "./secrets/qseal/guide_YYYY-MM-DD-<attempt-tag>/ca_certificate.crt"
 ```
 
-## Environment Variable Usage
-Set local `.env` values to external paths (example only):
+## Shell Script Usage
+The shell scripts in `script/` read cert/key files directly and use `SE_QSEAL_CERT_PATH`,
+`SE_QSEAL_KEY_PATH`, and `SE_QSEAL_PUBLIC_KEY_PATH` from `.env`. Set these to the attempt
+folder paths (example only):
 
 ```bash
 SE_QSEAL_CERT_PATH=./secrets/qseal/guide_YYYY-MM-DD-<attempt-tag>/client_signed_certifcate.crt
@@ -37,7 +39,11 @@ SE_QSEAL_KEY_PATH=./secrets/qseal/guide_YYYY-MM-DD-<attempt-tag>/client_private.
 SE_QSEAL_PUBLIC_KEY_PATH=./secrets/qseal/guide_YYYY-MM-DD-<attempt-tag>/client_public.key
 ```
 
-Do not commit `.env` and never commit real passphrases.
+**The Rails app does not read certs from files.** Certificate PEM and private key are stored in
+the `certificates` table (private key encrypted via ActiveRecord::Encryption) and injected into
+`SaltEdge::SignatureBuilder` at call time.
+
+Do not commit `.env` and never commit real key material.
 
 ## Backup and Recovery
 - Keep one encrypted backup copy in an approved local password manager or encrypted volume.

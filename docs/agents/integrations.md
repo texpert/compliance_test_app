@@ -15,9 +15,11 @@
 ## Certificate and Callback Inputs
 - Certificate guide source: [certificate_generation_guide.md](../certificate_generation_guide.md)
 - Certificate runbook: [qseal_generation_runbook.md](../qseal_generation_runbook.md)
--- Current generated public key for registration (local-only): `./secrets/qseal/guide_2026-04-04/client_public.key`
+- QSeal cert/key are stored in the `certificates` table (private key encrypted via ActiveRecord::Encryption).
+  The Rails app (`SaltEdge::SignatureBuilder`) reads from the DB — not from file-path env vars.
+- Shell scripts (`script/`) still read from local files via `SE_QSEAL_CERT_PATH` / `SE_QSEAL_KEY_PATH`.
 - Current connector URL used during portal registration: `https://ad18-109-185-141-9.ngrok-free.app` (ephemeral ngrok URL)
-- Env contract uses `SE_*` variables from `.env.example` and `README.md`.
+- Env contract: see `docs/milestone_4_ais_implementation_plan.md` → Environment Variable Contract section.
 
 ## Boundaries for Current Tasks
 - Keep external-request logic isolated from controllers (service-style classes when implementation starts).
