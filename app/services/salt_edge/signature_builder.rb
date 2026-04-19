@@ -6,15 +6,18 @@ require 'base64'
 module SaltEdge
   # Builds cryptographic signatures for Salt Edge API requests.
   #
-  # Implements RFC 3230 Digest header and custom HTTP Signature scheme:
+  # Implements RFC 3230 Digest header and HTTP Signature scheme per Salt Edge spec:
   #   Digest: SHA-256=<base64(SHA-256(body))>
-  #   Signature: keyId="<cert-fingerprint>",algorithm="rsa-sha256",headers="...",signature="<base64>"
+  #   Signature: Signature keyId="SN=<serial>,DN=<issuer>",algorithm="rsa-sha256",
+  #              headers="digest date x-request-id",signature="<base64>"
   #   TPP-Signature-Certificate: <base64(DER-cert)>
+  #
+  # Reads the QSeal certificate PEM and private key from the given Certificate
+  # AR record (private_key is stored encrypted via ActiveRecord::Encryption and
+  # returned decrypted on read).
   class SignatureBuilder
-    attr_reader :config
-
-    def initialize(config = SaltEdge::Config.new)
-      @config = config
+    def initialize(certificate:)
+      @certificate = certificate
     end
 
     # Build all signing headers for a request.
@@ -33,7 +36,7 @@ module SaltEdge
 
       {
         'Digest'                    => build_digest(body_str),
-        'Signature'                 => build_signature(method, path, request_id, date, body_str),
+        'Signature'                 => build_signature(request_id, date, body_str),
         'TPP-Signature-Certificate' => load_certificate_b64,
         'X-Request-ID'              => request_id,
         'Date'                      => date.httpdate
@@ -50,55 +53,38 @@ module SaltEdge
     end
 
     # Build the Signature header with RSA-SHA256.
-    def build_signature(method, path, request_id, date, body_str)
-      # Canonicalize the signing string per HTTP Signature spec
-      digest_value = build_digest(body_str).sub('SHA-256=', '')
-      request_target = "#{method.downcase} #{path}"
+    # Signs digest, date, x-request-id per Salt Edge BerlinGroup spec.
+    def build_signature(request_id, date, body_str)
       signing_string = [
-        "(request-target): #{request_target}",
+        "digest: #{build_digest(body_str)}",
         "date: #{date.httpdate}",
-        "x-request-id: #{request_id}",
-        "digest: SHA-256=#{digest_value}"
+        "x-request-id: #{request_id}"
       ].join("\n")
 
-      # Sign with RSA-SHA256
-      signature_bytes = sign_with_private_key(signing_string)
-      signature_b64 = Base64.strict_encode64(signature_bytes)
+      signature_b64 = Base64.strict_encode64(sign_with_private_key(signing_string))
 
-      # Build the Signature header
-      cert_fingerprint = certificate_fingerprint
-      'keyId="' + cert_fingerprint + '",' \
+      'Signature keyId="' + certificate_key_id + '",' \
       'algorithm="rsa-sha256",' \
-      'headers="(request-target) date x-request-id digest",' \
+      'headers="digest date x-request-id",' \
       'signature="' + signature_b64 + '"'
     end
 
-    # Sign data with the QSEAL private key using RSA-SHA256.
     def sign_with_private_key(data)
-      key = load_private_key
-      key.sign(OpenSSL::Digest.new('SHA256'), data)
+      load_private_key.sign(OpenSSL::Digest.new('SHA256'), data)
     end
 
-    # Load the QSEAL certificate from disk and return as base64-encoded DER.
     def load_certificate_b64
-      cert_pem = File.read(config.qseal_cert_path)
-      cert = OpenSSL::X509::Certificate.new(cert_pem)
+      cert = OpenSSL::X509::Certificate.new(@certificate.pem_content)
       Base64.strict_encode64(cert.to_der)
     end
 
-    # Load the QSEAL private key from disk.
     def load_private_key
-      key_pem = File.read(config.qseal_key_path)
-      OpenSSL::PKey::RSA.new(key_pem, config.qseal_key_passphrase)
+      OpenSSL::PKey::RSA.new(@certificate.private_key)
     end
 
-    # Compute the SHA-256 fingerprint of the certificate (hex format).
-    def certificate_fingerprint
-      cert_pem = File.read(config.qseal_cert_path)
-      cert = OpenSSL::X509::Certificate.new(cert_pem)
-      digest = OpenSSL::Digest.new('SHA256')
-      fingerprint = digest.digest(cert.to_der)
-      fingerprint.unpack1('H*')
+    def certificate_key_id
+      cert = OpenSSL::X509::Certificate.new(@certificate.pem_content)
+      "SN=#{cert.serial},DN=#{cert.issuer}"
     end
   end
 end

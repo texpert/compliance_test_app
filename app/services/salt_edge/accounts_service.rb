@@ -4,12 +4,12 @@ module SaltEdge
   # Fetches the account list for an authorised consent.
   #
   # Usage:
-  #   SaltEdge::AccountsService.new.accounts(consent_id: "abc-123")
+  #   SaltEdge::AccountsService.new(certificate: cert).accounts(consent_id: "abc-123")
   #   # => [{ "resourceId" => "…", "iban" => "…", "currency" => "EUR", … }, …]
   class AccountsService
-    def initialize(config: SaltEdge::Config.new, request_adapter: SaltEdge::RequestAdapter.new)
+    def initialize(config: SaltEdge::Config.new, request_adapter: nil, certificate: nil)
       @config = config
-      @request_adapter = request_adapter
+      @request_adapter = request_adapter || build_adapter(certificate)
     end
 
     def accounts(consent_id:)
@@ -21,6 +21,12 @@ module SaltEdge
       raise response.error if response.failure?
 
       response.data['accounts'] || []
+    end
+
+    private
+
+    def build_adapter(certificate)
+      SaltEdge::RequestAdapter.new(signer: SaltEdge::SignatureBuilder.new(certificate: certificate))
     end
   end
 end

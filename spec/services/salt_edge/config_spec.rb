@@ -6,13 +6,10 @@ RSpec.describe SaltEdge::Config do
   let(:valid_env) do
     {
       "SE_API_BASE_URL"         => "https://priora.saltedge.com",
-      "SE_QSEAL_CERT_PATH"      => "/secrets/qseal/client.crt",
-      "SE_QSEAL_KEY_PATH"       => "/secrets/qseal/client.key",
       "SE_CALLBACK_BASE_URL"    => "https://example.ngrok.io",
       "SE_REDIRECT_URI"         => "https://example.ngrok.io/callback",
       "SE_CLIENT_ID"            => nil,
       "SE_CLIENT_SECRET"        => nil,
-      "SE_QSEAL_KEY_PASSPHRASE" => nil,
       "SE_PSU_IP_ADDRESS"       => nil,
       "SE_HTTP_TIMEOUT_SECONDS" => nil
     }
@@ -34,8 +31,6 @@ RSpec.describe SaltEdge::Config do
   describe 'required attributes' do
     %w[
       SE_API_BASE_URL
-      SE_QSEAL_CERT_PATH
-      SE_QSEAL_KEY_PATH
       SE_CALLBACK_BASE_URL
       SE_REDIRECT_URI
     ].each do |var|
@@ -50,14 +45,6 @@ RSpec.describe SaltEdge::Config do
 
     it 'reads api_base_url from SE_API_BASE_URL' do
       expect(config.api_base_url).to eq('https://priora.saltedge.com')
-    end
-
-    it 'reads qseal_cert_path from SE_QSEAL_CERT_PATH' do
-      expect(config.qseal_cert_path).to eq('/secrets/qseal/client.crt')
-    end
-
-    it 'reads qseal_key_path from SE_QSEAL_KEY_PATH' do
-      expect(config.qseal_key_path).to eq('/secrets/qseal/client.key')
     end
 
     it 'reads callback_base_url from SE_CALLBACK_BASE_URL' do
@@ -80,13 +67,8 @@ RSpec.describe SaltEdge::Config do
       expect(config.client_id).to be_nil
     end
 
-
     it 'defaults client_secret to nil' do
       expect(config.client_secret).to be_nil
-    end
-
-    it 'defaults qseal_key_passphrase to nil' do
-      expect(config.qseal_key_passphrase).to be_nil
     end
 
     it 'defaults psu_ip_address to nil' do
@@ -105,12 +87,6 @@ RSpec.describe SaltEdge::Config do
       expect(config.client_secret).to eq('test-client-secret')
     end
 
-
-    it 'reads qseal_key_passphrase from SE_QSEAL_KEY_PASSPHRASE when set' do
-      config = build_config('SE_QSEAL_KEY_PASSPHRASE' => 'test-passphrase-placeholder')
-      expect(config.qseal_key_passphrase).to eq('test-passphrase-placeholder')
-    end
-
     it 'reads psu_ip_address from SE_PSU_IP_ADDRESS when set' do
       config = build_config('SE_PSU_IP_ADDRESS' => '1.2.3.4')
       expect(config.psu_ip_address).to eq('1.2.3.4')
@@ -120,17 +96,6 @@ RSpec.describe SaltEdge::Config do
       config = build_config('SE_HTTP_TIMEOUT_SECONDS' => '60')
       expect(config.http_timeout_seconds).to eq(60)
       expect(config.http_timeout).to eq(60)
-    end
-  end
-
-  describe "#signing_key?" do
-    it "returns true when qseal_key_path is present" do
-      expect(build_config.signing_key?).to be true
-    end
-
-    it "cannot be instantiated with a blank qseal_key_path (required attr)" do
-      expect { build_config("SE_QSEAL_KEY_PATH" => "") }
-        .to raise_error(Anyway::Config::ValidationError, /qseal_key_path/)
     end
   end
 

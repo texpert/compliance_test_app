@@ -4,9 +4,9 @@ require 'cgi'
 
 module SaltEdge
   class ConsentService
-    def initialize(config: SaltEdge::Config.new, request_adapter: SaltEdge::RequestAdapter.new)
+    def initialize(config: SaltEdge::Config.new, request_adapter: nil, certificate: nil)
       @config = config
-      @request_adapter = request_adapter
+      @request_adapter = request_adapter || build_adapter(certificate)
     end
 
     def create_consent(consent_id:, psu_ip_address: nil, valid_until: Date.current + 90)
@@ -58,6 +58,11 @@ module SaltEdge
     end
 
     private
+
+    def build_adapter(certificate)
+      signer = SaltEdge::SignatureBuilder.new(certificate: certificate)
+      SaltEdge::RequestAdapter.new(signer: signer)
+    end
 
     def consent_payload(valid_until)
       {
