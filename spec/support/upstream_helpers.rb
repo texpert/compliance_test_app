@@ -23,9 +23,11 @@ module UpstreamHelpers
       .to_return(*responses)
   end
 
-  def stub_accounts(consent_id:, accounts: [], provider_code: 'artea_sandbox')
+  def stub_accounts(consent_id:, accounts: [], provider_code: 'artea_sandbox', with_balance: false)
+    url = "https://priora.saltedge.com/#{provider_code}/api/berlingroup/v1/accounts"
+    url += '?withBalance=true' if with_balance
     body = { accounts: accounts }.to_json
-    stub_request(:get, "https://priora.saltedge.com/#{provider_code}/api/berlingroup/v1/accounts")
+    stub_request(:get, url)
       .with(headers: { 'Consent-ID' => consent_id })
       .to_return(status: 200, body: body, headers: { 'Content-Type' => 'application/json' })
   end
@@ -58,9 +60,9 @@ module UpstreamHelpers
     JSON.parse(File.read(path))
   end
 
-  def stub_accounts_from_fixture(consent_id:, fixture_name:)
+  def stub_accounts_from_fixture(consent_id:, fixture_name:, with_balance: false)
     data = load_upstream_fixture(fixture_name)
-    stub_accounts(consent_id: consent_id, accounts: data['accounts'])
+    stub_accounts(consent_id: consent_id, accounts: data['accounts'], with_balance: with_balance)
   end
 
   def stub_transactions_from_fixture(account_id:, consent_id:, fixture_name:)

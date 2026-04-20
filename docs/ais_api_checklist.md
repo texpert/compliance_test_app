@@ -13,7 +13,7 @@ This checklist describes a TPP (Third-Party Provider) flow where a PSU (Payment 
 | 4.3 Redirect to SCA | URL from step 4.2 | Browser navigation | n/a — browser carries no TPP headers | n/a | Artea sandbox renders SCA page | ✅ confirmed 2026-04-20 |
 | 4.4 PSU completes SCA | Artea sandbox SCA screen | n/a (PSU action in browser) | n/a | n/a | ASPSP redirects PSU to `TPP-Redirect-URI` (path-based, no query params) | ✅ PSU credentials required from portal; not auto-approved |
 | 4.5 Callback handling | `GET /callback/{consent_id}` | Rails inbound | n/a (inbound from ASPSP) | n/a | App records callback, calls `GET /artea_sandbox/api/berlingroup/v1/consents/{consentId}/status`, confirms `consentStatus: valid` | ✅ confirmed 2026-04-20; no `code` or `state` params returned |
-| 4.6 Accounts list | `GET /artea_sandbox/api/berlingroup/v1/accounts` | GET | `X-Request-ID`, `Date`, `Digest`, `Signature`, `TPP-Signature-Certificate`, `Consent-ID` | none | HTTP 200 `{"accounts":[{"resourceId":"…","iban":"…","currency":"…","name":"…","_links":{…}}]}` | ✅ confirmed from spec |
+| 4.6 Accounts list | `GET /artea_sandbox/api/berlingroup/v1/accounts[?withBalance=true]` | GET | `X-Request-ID`, `Date`, `Digest`, `Signature`, `TPP-Signature-Certificate`, `Consent-ID` | none | HTTP 200 `{"accounts":[{"resourceId":"…","iban":"…","currency":"…","name":"…","balances":[…],"_links":{…}}]}` — `balances` array only present when `withBalance=true` | ✅ confirmed from spec |
 | 4.7 Transactions list | `GET /artea_sandbox/api/berlingroup/v1/accounts/{account-id}/transactions?bookingStatus=both&dateFrom=YYYY-MM-DD&dateTo=YYYY-MM-DD` | GET | `X-Request-ID`, `Date`, `Digest`, `Signature`, `TPP-Signature-Certificate`, `Consent-ID` | none | HTTP 200 `{"transactions":{"booked":[…],"pending":[…]}}` | ✅ confirmed from spec |
 
 ## Consent Status Check (used in step 4.5)
@@ -21,6 +21,16 @@ This checklist describes a TPP (Third-Party Provider) flow where a PSU (Payment 
 | Step | Endpoint | Method | Required Headers | Request Body | Expected Response | Status |
 |---|---|---|---|---|---|---|
 | Status check | `GET /artea_sandbox/api/berlingroup/v1/consents/{consentId}/status` | GET | `X-Request-ID`, `Date`, `Digest`, `Signature`, `TPP-Signature-Certificate` | none | HTTP 200 `{"consentStatus":"valid"}` | ✅ confirmed 2026-04-20 |
+
+## Pre-fetch Status Check for Accepted Consents
+
+When a consent has status `accepted` (ASPSP registered the consent but SCA has not completed), the app performs a live status check before fetching accounts:
+
+1. `GET /artea_sandbox/api/berlingroup/v1/consents/{consentId}/status`
+2. If the returned status differs from the locally stored value, the local `Consent` record is updated.
+3. If the status has not reached `valid`, the fetch is aborted with an alert directing the operator to complete SCA first.
+
+This check is **only** performed when the selected consent is `accepted`; `valid` consents proceed directly to the accounts fetch.
 
 ## Error Cases to Validate
 

@@ -1,0 +1,26 @@
+{
+  "accounts": [
+    {
+      "resourceId": "acc-001",
+      "iban": "DE89370400440532013000",
+      "currency": "EUR",
+      "name": "Checking",
+      "status": "enabled",
+      "usage": "PRIV",
+      "balances": [
+        {
+          "balanceType": "closingBooked",
+          "balanceAmount": { "currency": "EUR", "amount": "1234.56" },
+          "creditLimitIncluded": false,
+          "referenceDate": "2026-04-20"
+        },
+        {
+          "balanceType": "interimAvailable",
+          "balanceAmount": { "currency": "EUR", "amount": "1100.00" },
+          "creditLimitIncluded": true,
+          "referenceDate": "2026-04-20"
+        }
+      ]
+    }
+  ]
+}

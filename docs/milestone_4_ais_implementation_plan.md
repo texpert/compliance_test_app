@@ -140,11 +140,12 @@ NGROK_TUNNEL=true
 
 ### Phase 3: Service Layer
 - [x] Implement Salt Edge request adapter on top of `HttpxClient` with timeout/error normalization *(PR #17)*
-- [x] Implement AIS services: *(PR #17)*
-  - [x] `SaltEdge::ConsentService`
+- [x] Implement AIS services:
+  - [x] `SaltEdge::ConsentService` *(PR #17)*
   - [ ] `SaltEdge::ConsentStatusService`
-  - [x] `SaltEdge::AccountsService`
-  - [x] `SaltEdge::TransactionsService`
+  - [x] `SaltEdge::AccountsService` — extended with `with_balance:` param (`?withBalance=true`) *(PR #17, #36)*
+  - [x] `SaltEdge::TransactionsService` *(PR #17)*
+  - [x] `SaltEdge::AccountsFetchService` — upserts `Account` and `AccountBalance` records from upstream *(PR #36)*
 
 ### Phase 4: ActiveAdmin UI, Provider Management, and State Management
 
@@ -164,19 +165,23 @@ This phase uses **ActiveAdmin** (without user authentication/authorization) as t
 
 #### Provider pages and actions
 - [x] Create an ActiveAdmin `Provider` resource page with custom action items:
-  - [x] **Generate QSeal certificate** — action button that invokes `QsealCertificateCreator` and stores the result
-  - [x] **Register TPP** — action button (shown when an issued QSeal cert exists) that calls `SaltEdge::ProviderRegistrationService`, records a `tpp_registration_request` Event with full request/response headers, and stamps `registration_request_sent_at` on success
+  - [x] **Generate QSeal certificate** — action button; hidden when an issued cert has >1 month until expiration *(PR #36)*
+  - [x] **Register TPP** — action button; shown when an issued QSeal cert exists **and** provider is not yet registered (`registered_at` nil) *(PR #36)*
+  - [x] **Create Consent** — POST action with retry-reuse logic for pending consents with errored last event
+  - [x] **Fetch Accounts** — GET form (consent select with status shown + `withBalance` checkbox); visible when a `valid` or `accepted` consent exists; `accepted` consent triggers a live status check before proceeding *(PR #36)*
 - [x] Implement `SaltEdge::ProviderRegistrationService` for upstream provider registration
 - [x] Implement `QsealCertificateCreator` service callable from the admin UI
 
 #### Consent pages and actions
-- [ ] Create an ActiveAdmin `Consent` resource with:
-  - [ ] Index page listing all consents
-  - [ ] Show page displaying consent details, status, and associated events
-  - [ ] "Create consent" action button that creates a local Consent and invokes the upstream create flow
-  - [ ] "Fetch accounts" action button on consent show page (calls `SaltEdge::AccountsService`, produces `accounts_fetch` Event)
-  - [ ] "Fetch transactions" action button on consent show page (calls `SaltEdge::TransactionsService`, produces `transactions_fetch` Event)
+- Note: consent lifecycle is managed from the **Provider show page** (not a dedicated Consent resource). Consents are displayed in a panel on the Provider show page.
+- [ ] Create an ActiveAdmin `Consent` resource (read-only index/show) for direct inspection
 - [ ] Create an ActiveAdmin `Event` resource (read-only index/show for audit trail)
+
+#### Account and AccountBalance pages
+- [x] `Account` model — identified globally by `resource_id` (no FK to consent or provider); upsert key `resource_id` *(PR #36)*
+- [x] `AccountBalance` model — belongs to `account`; upsert key `(account_id, balance_type)` *(PR #36)*
+- [x] `ActiveAdmin::Accounts` — index (sorted by `updated_at desc`) + show with balances panel *(PR #36)*
+- [x] `ActiveAdmin::AccountBalances` — show only, hidden from nav (`menu false`) *(PR #36)*
 
 #### AIS workflow models and controllers (pre-ActiveAdmin)
 - [x] Create `Consent`, `Event`, and `Provider` models with AIS workflow migration *(PR #15)*

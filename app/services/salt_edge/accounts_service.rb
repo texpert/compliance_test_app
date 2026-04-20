@@ -12,10 +12,12 @@ module SaltEdge
       @request_adapter = request_adapter || build_adapter(certificate)
     end
 
-    def accounts(consent_id:)
+    def accounts(consent_id:, with_balance: false)
+      path = "/#{@config.api_provider_code}/api/berlingroup/v1/accounts"
+      path += '?withBalance=true' if with_balance
       response = @request_adapter.request(
         method: :get,
-        path: "/#{@config.api_provider_code}/api/berlingroup/v1/accounts",
+        path: path,
         headers: { 'Consent-ID' => consent_id }
       )
       raise response.error if response.failure?

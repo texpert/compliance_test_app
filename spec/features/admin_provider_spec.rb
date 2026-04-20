@@ -118,7 +118,20 @@ RSpec.describe 'Admin Provider management', type: :feature do
     let!(:provider) { create(:provider, name: 'Acme TPP', code: 'acme_tpp', company: company, representative: user) }
     let!(:ca_cert_record) { CaRootCertificateCreator.create!(name: 'Test CA Root').first }
 
-    scenario 'Provider show page has Create QSeal Certificate action item' do
+    scenario 'Provider show page has Create QSeal Certificate action item when no cert exists' do
+      visit admin_provider_path(provider)
+      expect(page).to have_link('Create QSeal Certificate')
+    end
+
+    scenario 'hides Create QSeal Certificate when an issued cert has more than 1 month until expiration' do
+      QsealCertificateCreator.create!(provider: provider, ca_certificate: ca_cert_record, name: 'Long-lived Cert')
+      visit admin_provider_path(provider)
+      expect(page).not_to have_link('Create QSeal Certificate')
+    end
+
+    scenario 'shows Create QSeal Certificate when the issued cert expires within 1 month' do
+      cert, _qseal = QsealCertificateCreator.create!(provider: provider, ca_certificate: ca_cert_record, name: 'Expiring Soon')
+      cert.update_columns(not_after: 2.weeks.from_now)
       visit admin_provider_path(provider)
       expect(page).to have_link('Create QSeal Certificate')
     end
@@ -187,6 +200,29 @@ RSpec.describe 'Admin Provider management', type: :feature do
       expect(page).to have_content("Create a QSeal Certificate for #{provider.name}")
       # The select should be present but empty
       expect(page).to have_select('CA Certificate')
+    end
+  end
+
+  context 'Register TPP action item visibility' do
+    let!(:provider) { create(:provider, name: 'Acme TPP', code: 'acme_tpp', company: company, representative: user) }
+    let!(:ca_cert_record) { CaRootCertificateCreator.create!(name: 'Test CA Root').first }
+
+    scenario 'is not visible without an issued QSeal certificate' do
+      visit admin_provider_path(provider)
+      expect(page).not_to have_link('Register TPP')
+    end
+
+    scenario 'is visible when an issued cert exists and provider is not yet registered' do
+      QsealCertificateCreator.create!(provider: provider, ca_certificate: ca_cert_record, name: 'Acme QSeal')
+      visit admin_provider_path(provider)
+      expect(page).to have_link('Register TPP')
+    end
+
+    scenario 'is hidden when provider is already registered' do
+      QsealCertificateCreator.create!(provider: provider, ca_certificate: ca_cert_record, name: 'Acme QSeal')
+      provider.update!(registered_at: 1.hour.ago)
+      visit admin_provider_path(provider)
+      expect(page).not_to have_link('Register TPP')
     end
   end
 
@@ -335,9 +371,131 @@ RSpec.describe 'Admin Provider management', type: :feature do
 
           expect(page).to have_content('Failed to create consent: provider not found')
           within('.attributes_table') do
-            expect(page).to have_content(Date.today.strftime('%Y-%m-%d'))
+            expect(page).to have_content(Time.now.utc.strftime('%Y-%m-%d'))
           end
         end
+      end
+    end
+  end
+
+  context 'Fetch Accounts action' do
+    let!(:provider) do
+      create(:provider, name: 'Acme TPP', code: 'acme_tpp', company: company, representative: user,
+                        registration_request_sent_at: 1.hour.ago, registered_at: 1.hour.ago)
+    end
+    let!(:ca_cert_record) { CaRootCertificateCreator.create!(name: 'Test CA Root').first }
+    let!(:_cert) do
+      QsealCertificateCreator.create!(provider: provider, ca_certificate: ca_cert_record, name: 'Acme QSeal').first
+    end
+    let!(:consent) do
+      provider.consents.create!(upstream_consent_id: 'consent-valid-1', status: Consent::STATUS_VALID, callback_params: {})
+    end
+
+    scenario 'Fetch Accounts action item is visible when a valid consent exists' do
+      visit admin_provider_path(provider)
+      expect(page).to have_link('Fetch Accounts')
+    end
+
+    scenario 'Fetch Accounts action item is visible when only an accepted consent exists' do
+      consent.update!(status: Consent::STATUS_ACCEPTED)
+      visit admin_provider_path(provider)
+      expect(page).to have_link('Fetch Accounts')
+    end
+
+    scenario 'Fetch Accounts action item is not visible without a valid or accepted consent' do
+      consent.update!(status: Consent::STATUS_RECEIVED)
+      visit admin_provider_path(provider)
+      expect(page).not_to have_link('Fetch Accounts')
+    end
+
+    scenario 'new_fetch_accounts form shows eligible consents with their status and withBalance option' do
+      visit new_fetch_accounts_admin_provider_path(provider)
+      expect(page).to have_content("Fetch Accounts for #{provider.name}")
+      expect(page).to have_select('Consent', with_options: ["Consent #{consent.id} [valid] — consent-valid-1"])
+      expect(page).to have_unchecked_field(:with_balance, visible: :any)
+    end
+
+    context 'when upstream returns accounts successfully' do
+      before do
+        stub_accounts(
+          consent_id: 'consent-valid-1',
+          accounts: [
+            { 'resourceId' => 'acc-001', 'iban' => 'DE89370400440532013000', 'currency' => 'EUR', 'name' => 'Checking' },
+            { 'resourceId' => 'acc-002', 'iban' => 'DE00987654321', 'currency' => 'EUR', 'name' => 'Savings' }
+          ]
+        )
+      end
+
+      scenario 'fetches accounts and redirects to accounts index' do
+        visit new_fetch_accounts_admin_provider_path(provider)
+        click_button 'Fetch Accounts'
+
+        expect(page).to have_content('Fetched 2 account(s) successfully.')
+        expect(page).to have_current_path(%r{/admin/accounts})
+        expect(page).to have_content('acc-001')
+        expect(page).to have_content('acc-002')
+      end
+
+      scenario 'creates Account records in the DB' do
+        visit new_fetch_accounts_admin_provider_path(provider)
+        expect { click_button 'Fetch Accounts' }.to change(Account, :count).by(2)
+      end
+    end
+
+    context 'when upstream returns an error' do
+      before { stub_accounts_error(status: 403, body: { 'tppMessages' => [{ 'text' => 'CONSENT_INVALID' }] }) }
+
+      scenario 'shows an error alert and stays on provider page' do
+        visit new_fetch_accounts_admin_provider_path(provider)
+        click_button 'Fetch Accounts'
+
+        expect(page).to have_content('Failed to fetch accounts: CONSENT_INVALID')
+        expect(page).to have_current_path(admin_provider_path(provider))
+      end
+    end
+
+    context 'when an accepted consent is selected' do
+      let!(:consent) do
+        provider.consents.create!(upstream_consent_id: 'consent-accepted-1',
+                                  status: Consent::STATUS_ACCEPTED, callback_params: {})
+      end
+
+      before do
+        stub_accounts(
+          consent_id: 'consent-accepted-1',
+          accounts: [{ 'resourceId' => 'acc-001', 'iban' => 'DE89370400440532013000', 'currency' => 'EUR', 'name' => 'Checking' }]
+        )
+      end
+
+      scenario 'checks status and proceeds when it has become valid' do
+        stub_consent_status('consent-accepted-1', 'valid')
+
+        visit new_fetch_accounts_admin_provider_path(provider)
+        click_button 'Fetch Accounts'
+
+        expect(page).to have_content('Fetched 1 account(s) successfully.')
+        expect(consent.reload.status_before_type_cast).to eq('valid')
+      end
+
+      scenario 'shows alert and updates consent when status changed but not yet valid' do
+        stub_consent_status('consent-accepted-1', 'partiallyAuthorised')
+
+        visit new_fetch_accounts_admin_provider_path(provider)
+        click_button 'Fetch Accounts'
+
+        expect(page).to have_content("status is 'partiallyAuthorised'")
+        expect(page).to have_content('authorise it first or choose a different consent')
+        expect(consent.reload.status_before_type_cast).to eq('partiallyAuthorised')
+      end
+
+      scenario 'shows alert without updating consent when status is still accepted' do
+        stub_consent_status('consent-accepted-1', 'accepted')
+
+        visit new_fetch_accounts_admin_provider_path(provider)
+        click_button 'Fetch Accounts'
+
+        expect(page).to have_content("status is 'accepted'")
+        expect(consent.reload.status_before_type_cast).to eq('accepted')
       end
     end
   end

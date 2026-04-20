@@ -10,7 +10,40 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_20_145901) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_21_100001) do
+  create_table "account_balances", force: :cascade do |t|
+    t.integer "account_id", null: false
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.string "balance_type", null: false
+    t.datetime "created_at", null: false
+    t.boolean "credit_limit_included", default: false, null: false
+    t.string "currency", null: false
+    t.datetime "last_change_date_time"
+    t.date "reference_date"
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "balance_type"], name: "index_account_balances_on_account_id_and_balance_type", unique: true
+    t.index ["account_id"], name: "index_account_balances_on_account_id"
+  end
+
+  create_table "accounts", force: :cascade do |t|
+    t.string "bban"
+    t.string "bic"
+    t.string "cash_account_type"
+    t.datetime "created_at", null: false
+    t.string "currency", null: false
+    t.string "iban"
+    t.string "msisdn"
+    t.string "name"
+    t.string "owner_name"
+    t.string "product"
+    t.json "raw_data", default: {}, null: false
+    t.string "resource_id", null: false
+    t.string "status"
+    t.datetime "updated_at", null: false
+    t.string "usage"
+    t.index ["resource_id"], name: "index_accounts_on_resource_id", unique: true
+  end
+
   create_table "active_admin_comments", force: :cascade do |t|
     t.integer "author_id"
     t.string "author_type"
@@ -136,6 +169,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_20_145901) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "account_balances", "accounts"
   add_foreign_key "certificates", "certificates", column: "issuer_id"
   add_foreign_key "companies_users", "companies"
   add_foreign_key "companies_users", "users"
