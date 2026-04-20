@@ -142,7 +142,43 @@ No `code` or `state` query parameters (Artea sandbox does not include them).
 | `referenceDate` | `reference_date` | Date |
 | `lastChangeDateTime` | `last_change_date_time` | Datetime |
 
-**Transactions**: triggered separately (not part of this flow); see `SaltEdge::TransactionsService`.
+**Transactions**: triggered separately from the Account show page; see step 4.6.
+
+---
+
+### 4.6 Fetch Transactions (admin action)
+
+**Trigger**: Admin clicks "Fetch Transactions" on the Account show page (button visible when at least one `valid` or `accepted` consent exists globally).
+
+**Flow**:
+
+1. Admin navigates to the Fetch Transactions form (`GET /admin/accounts/:id/new_fetch_transactions`).
+2. Form shows:
+   - Consent selector (all `valid`/`accepted` consents across all providers, labelled with provider name)
+   - **Date From** (default: 90 days ago)
+   - **Date To** (default: today)
+   - **Booking Status** selector: `both` (default), `booked only`, or `pending only`
+   - **Paginated** checkbox (unchecked by default)
+3. Admin selects a consent and adjusts options, then submits.
+
+**If the selected consent is `accepted`**: same live status check as in step 4.5 (see above).
+
+**Non-paginated fetch** (default):
+
+4. App calls `GET /{provider_code}/api/berlingroup/v1/accounts/{resourceId}/transactions?bookingStatus={status}&dateFrom={from}&dateTo={to}` with `Consent-ID`.
+5. Booked transactions upserted by `(account_id, transaction_id)`; pending transactions deleted and recreated.
+6. Admin redirected to Account show page with a count notice.
+
+**Paginated fetch** (`paginated` checked):
+
+4. App calls the same URL with `&paginated=1` appended.
+5. Response contains up to 50 transactions and may include `_links.next.href`.
+6. App persists the current page's booked and pending transactions, then follows `_links.next.href` until it is absent.
+7. Memory usage is bounded to one page at a time — each page is persisted before the next fetch.
+
+**On success**: admin redirected to Account show page with "Fetched N transaction(s) successfully."
+
+**Transactions panel** on Account show page displays the 20 most recent transactions with a link to the full filtered index (`/admin/transactions?q[account_id_eq]={id}`).
 
 ---
 
