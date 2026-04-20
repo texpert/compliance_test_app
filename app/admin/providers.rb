@@ -15,10 +15,17 @@ ActiveAdmin.register Provider do
             method: :delete, data: { confirm: 'Are you sure?' }
   end
   action_item :new_qseal_certificate, only: :show do
-    link_to 'Create QSeal Certificate', new_qseal_certificate_admin_provider_path(resource)
+    cert_expiring_soon = resource.certificates
+                                 .where(certifiable_type: 'QsealCertificate', status: 'issued')
+                                 .where('not_after > ?', 1.month.from_now)
+                                 .exists?
+    unless cert_expiring_soon
+      link_to 'Create QSeal Certificate', new_qseal_certificate_admin_provider_path(resource)
+    end
   end
   action_item :register_tpp, only: :show do
-    if resource.certificates.where(certifiable_type: 'QsealCertificate', status: 'issued').exists?
+    has_cert = resource.certificates.where(certifiable_type: 'QsealCertificate', status: 'issued').exists?
+    if has_cert && resource.registered_at.nil?
       link_to 'Register TPP', new_tpp_registration_admin_provider_path(resource)
     end
   end
@@ -26,6 +33,11 @@ ActiveAdmin.register Provider do
     if resource.registration_request_sent_at.present?
       link_to 'Create Consent', create_consent_admin_provider_path(resource),
               method: :post, data: { confirm: 'Create a new consent for this provider?' }
+    end
+  end
+  action_item :fetch_accounts, only: :show do
+    if resource.consents.where(status: [Consent::STATUS_VALID, Consent::STATUS_ACCEPTED]).exists?
+      link_to 'Fetch Accounts', new_fetch_accounts_admin_provider_path(resource)
     end
   end
 
@@ -91,6 +103,54 @@ ActiveAdmin.register Provider do
       redirect_to admin_provider_path(provider),
                   alert: "TPP registration request failed: #{result.error.message}"
     end
+  end
+
+  member_action :new_fetch_accounts, method: :get do
+    @provider = resource
+    @eligible_consents = resource.consents
+                                 .where(status: [Consent::STATUS_VALID, Consent::STATUS_ACCEPTED])
+                                 .order(created_at: :desc)
+    render 'admin/providers/new_fetch_accounts'
+  end
+
+  member_action :fetch_accounts, method: :post do
+    provider = resource
+    consent = provider.consents.find_by(id: params[:consent_id])
+    unless consent
+      redirect_to admin_provider_path(provider), alert: 'Consent not found.'
+      next
+    end
+
+    cert = provider.latest_qseal_cert
+    unless cert
+      redirect_to admin_provider_path(provider), alert: 'No issued QSeal certificate found.'
+      next
+    end
+
+    if consent.status_accepted?
+      consent_service = SaltEdge::ConsentService.new(certificate: cert)
+      current_status = consent_service.consent_status(consent.upstream_consent_id)
+      if current_status != consent.status_before_type_cast
+        consent.update!(status: Consent.status_value(current_status))
+      end
+      unless consent.status_valid?
+        redirect_to admin_provider_path(provider),
+                    alert: "Consent #{consent.id} status is '#{consent.status_before_type_cast}' — please authorise it first or choose a different consent."
+        next
+      end
+    end
+
+    with_balance = params[:with_balance] == '1'
+    service = SaltEdge::AccountsFetchService.new(certificate: cert)
+    accounts = service.fetch_and_persist(
+      consent_id: consent.upstream_consent_id,
+      with_balance: with_balance
+    )
+
+    redirect_to admin_accounts_path(q: { s: 'updated_at desc' }),
+                notice: "Fetched #{accounts.count} account(s) successfully."
+  rescue => e
+    redirect_to admin_provider_path(provider), alert: "Failed to fetch accounts: #{e.message}"
   end
 
   member_action :create_consent, method: :post do

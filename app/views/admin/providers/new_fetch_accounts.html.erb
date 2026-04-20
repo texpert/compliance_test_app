@@ -1,0 +1,33 @@
+<h3>Fetch Accounts for <%= @provider.name %></h3>
+
+<%= form_with url: fetch_accounts_admin_provider_path(@provider), method: :post, local: true do |f| %>
+  <fieldset style="border:1px solid #ddd; border-radius:4px; padding:1em 1.25em; margin-bottom:1.25em;">
+    <legend style="font-weight:bold; padding:0 0.4em; color:#333;">Consent</legend>
+    <p style="color:#666; font-size:0.9em; margin:0 0 0.75em;">
+      Select a <strong>valid</strong> consent, or an <strong>accepted</strong> one — its status will be checked
+      live and the flow will proceed only if it has become valid.
+    </p>
+    <div class="input">
+      <%= f.label :consent_id, 'Consent' %><br>
+      <% consent_options = @eligible_consents.map { |c| ["Consent #{c.id} [#{c.status_before_type_cast}] — #{c.upstream_consent_id}", c.id] } %>
+      <% select_opts = @eligible_consents.one? ? { selected: @eligible_consents.first.id } : { prompt: 'Select a consent' } %>
+      <%= f.select :consent_id, consent_options, select_opts,
+                   { required: true, style: 'width:100%; max-width:640px;' } %>
+    </div>
+  </fieldset>
+
+  <fieldset style="border:1px solid #ddd; border-radius:4px; padding:1em 1.25em; margin-bottom:1.25em;">
+    <legend style="font-weight:bold; padding:0 0.4em; color:#333;">Options</legend>
+    <div class="input">
+      <label>
+        <%= check_box_tag :with_balance, '1', false %>
+        Include account balances (<code>withBalance=true</code>)
+      </label>
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <%= f.submit 'Fetch Accounts', class: 'button' %>
+    <%= link_to 'Cancel', admin_provider_path(@provider), class: 'button' %>
+  </div>
+<% end %>

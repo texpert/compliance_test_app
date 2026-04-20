@@ -45,6 +45,17 @@ RSpec.describe SaltEdge::AccountsService do
       expect(result).to eq(upstream_accounts)
     end
 
+    it 'requests with withBalance=true when with_balance is true' do
+      stub_accounts_from_fixture(consent_id: 'consent-abc', fixture_name: 'accounts_with_balances', with_balance: true)
+
+      result = service.accounts(consent_id: 'consent-abc', with_balance: true)
+
+      expect(
+        a_request(:get, 'https://priora.saltedge.com/artea_sandbox/api/berlingroup/v1/accounts?withBalance=true')
+      ).to have_been_made
+      expect(result.first).to include('resourceId' => 'acc-001', 'balances' => be_an(Array))
+    end
+
     it 'returns an empty array when the response contains no accounts key' do
       stub_request(:get, 'https://priora.saltedge.com/artea_sandbox/api/berlingroup/v1/accounts')
         .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })

@@ -8,7 +8,7 @@
 #  callback_error       :text
 #  callback_params      :json             not null
 #  callback_received_at :datetime
-#  status               :string           default(NULL), not null
+#  status               :string           default("pending"), not null
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  provider_id          :integer          not null
