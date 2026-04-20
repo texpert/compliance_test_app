@@ -110,17 +110,17 @@ ActiveAdmin.register Provider do
     last_event_errored = pending && pending.events.order(:occurred_at).last&.response_body&.key?('error')
 
     consent = if last_event_errored
-                pending
-              else
-                begin
-                  provider.consents.create!(status: Consent::STATUS_PENDING, callback_params: {})
-                rescue => e
-                  Event.record(event_type: 'consent_create', provider: provider,
-                               response_body: { 'error' => "Failed to create local consent record: #{e.message}" })
-                  redirect_to admin_provider_path(provider), alert: "Failed to create consent: #{e.message}"
-                  next
-                end
-              end
+      pending
+    else
+      begin
+        provider.consents.create!(status: Consent::STATUS_PENDING, callback_params: {})
+      rescue => e
+        Event.record(event_type: 'consent_create', provider: provider,
+                     response_body: { 'error' => "Failed to create local consent record: #{e.message}" })
+        redirect_to admin_provider_path(provider), alert: "Failed to create consent: #{e.message}"
+        next
+      end
+    end
 
     # ConsentService records the event (with full request/response headers and body) before raising.
     service = SaltEdge::ConsentService.new(certificate: cert)
