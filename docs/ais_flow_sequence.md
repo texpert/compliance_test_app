@@ -106,14 +106,43 @@ No `code` or `state` query parameters (Artea sandbox does not include them).
 
 ---
 
-### 4.5 Accounts and Transactions (manual fetch)
+### 4.5 Fetch Accounts (admin action)
 
-After consent reaches `valid` status, data can be retrieved via the AIS data endpoints:
+**Trigger**: Admin clicks "Fetch Accounts" on the Provider show page (button visible when at least one `valid` or `accepted` consent exists).
 
-- `GET /artea_sandbox/api/berlingroup/v1/accounts` with `Consent-ID: {upstream_consent_id}` header
-- `GET /artea_sandbox/api/berlingroup/v1/accounts/{resourceId}/transactions?bookingStatus=both&dateFrom=…&dateTo=…`
+**Flow**:
 
-These are triggered manually from the admin UI or via explicit operator actions (not automatically on callback).
+1. Admin navigates to the Fetch Accounts form (`GET /admin/providers/:id/new_fetch_accounts`).
+2. Form shows all eligible consents (status `valid` or `accepted`) with their status displayed, plus a **withBalance** checkbox.
+3. Admin selects a consent and optionally checks `withBalance`, then submits.
+
+**If the selected consent is `accepted`** (SCA not yet confirmed):
+
+4. App calls `GET /artea_sandbox/api/berlingroup/v1/consents/{consentId}/status`.
+5. Local `Consent` record updated if status has changed.
+6. If status has not reached `valid`, flow is aborted and an alert is shown:
+   > "Consent N status is 'accepted' — please authorise it first or choose a different consent."
+7. If status is now `valid`, flow proceeds.
+
+**Accounts fetch**:
+
+8. App calls `GET /artea_sandbox/api/berlingroup/v1/accounts[?withBalance=true]` with `Consent-ID: {upstream_consent_id}`.
+9. Each account is upserted by `resourceId` (no FK to consent or provider — accounts are global per PSU at the ASPSP).
+10. If `withBalance=true`, each account's `balances` array is upserted by `(account_id, balance_type)`.
+11. On success, admin is redirected to `/admin/accounts` sorted by `updated_at desc` with a success notice.
+
+**Account balance fields** (when `withBalance=true`):
+
+| Field in upstream | Local column | Notes |
+|---|---|---|
+| `balanceType` | `balance_type` | e.g. `closingBooked`, `interimAvailable` |
+| `balanceAmount.amount` | `amount` | Decimal 15,2 |
+| `balanceAmount.currency` | `currency` | Falls back to account currency if absent |
+| `creditLimitIncluded` | `credit_limit_included` | Boolean, default false |
+| `referenceDate` | `reference_date` | Date |
+| `lastChangeDateTime` | `last_change_date_time` | Datetime |
+
+**Transactions**: triggered separately (not part of this flow); see `SaltEdge::TransactionsService`.
 
 ---
 

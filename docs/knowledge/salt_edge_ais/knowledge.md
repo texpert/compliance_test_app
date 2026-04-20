@@ -15,7 +15,7 @@ All endpoints use the `/:provider_code/api/berlingroup/v1/` prefix.
 - `GET /:provider_code/api/berlingroup/v1/consents/{consentId}` — get consent details
 - `GET /:provider_code/api/berlingroup/v1/consents/{consentId}/status` — get consent status
 - `DELETE /:provider_code/api/berlingroup/v1/consents/{consentId}` — revoke consent
-- `GET /:provider_code/api/berlingroup/v1/accounts` — account list; requires `Consent-ID` header
+- `GET /:provider_code/api/berlingroup/v1/accounts[?withBalance=true]` — account list; requires `Consent-ID` header; append `?withBalance=true` to receive `balances` array inline per account
 - `GET /:provider_code/api/berlingroup/v1/accounts/{account-id}/balances` — balances for one account
 - `GET /:provider_code/api/berlingroup/v1/accounts/{account-id}/transactions` — transaction list; supports `dateFrom`, `dateTo`, `bookingStatus` query params
 - `GET /:provider_code/api/berlingroup/v1/accounts/{account-id}/transactions/{transactionId}` — single transaction
@@ -105,3 +105,39 @@ Salt Edge error when wrong headers are signed:
 
 #### Token Exchange
 - Artea sandbox does not return a `code` in the callback URL. Consent validity is established by status check only.
+
+### Account and Balance Data Shapes
+
+#### Account fields (from `GET /accounts` response)
+| Upstream field | Type | Notes |
+|---|---|---|
+| `resourceId` | string | Unique account identifier at the ASPSP; used as the local upsert key |
+| `iban` | string | May be absent for some account types |
+| `bban` | string | Basic Bank Account Number (alternative to IBAN) |
+| `bic` | string | Bank Identifier Code |
+| `msisdn` | string | Mobile number for payment accounts |
+| `currency` | string | ISO 4217; always present |
+| `name` | string | Account alias/name |
+| `product` | string | Product name |
+| `cashAccountType` | string | e.g. `CACC`, `SVGS` |
+| `status` | string | e.g. `enabled`, `deleted`, `blocked` |
+| `usage` | string | `PRIV` or `ORGA` |
+| `ownerName` | string | Account holder name |
+
+Accounts are **not scoped to a specific consent or provider** in the local DB — they are identified globally by `resourceId`. A consent is only used to authenticate the fetch request (`Consent-ID` header). Upsert key: `resource_id`.
+
+#### Balance fields (from `balances` array when `withBalance=true`)
+| Upstream field | Type | Notes |
+|---|---|---|
+| `balanceType` | string | e.g. `closingBooked`, `interimAvailable`, `openingBooked` |
+| `balanceAmount.amount` | decimal string | e.g. `"1234.56"` |
+| `balanceAmount.currency` | string | Falls back to account currency if absent |
+| `creditLimitIncluded` | boolean | Whether credit limit is included in the balance |
+| `referenceDate` | date string | `YYYY-MM-DD` |
+| `lastChangeDateTime` | datetime string | ISO 8601 |
+
+Upsert key: `(account_id, balance_type)`.
+
+### Admin UI — Pre-fetch Accepted Consent Status Check
+
+When an `accepted` consent is selected on the Fetch Accounts form, the app performs a live status check (`GET …/consents/{id}/status`) before proceeding. The local `Consent` record is updated if the status has changed. The fetch is aborted if the status is still not `valid`, with an alert directing the operator to complete SCA first. This prevents fetching data against an unauthorised consent.

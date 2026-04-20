@@ -80,8 +80,10 @@ Status (2026-04-09): API submission accepted, async validation pending
   - [ais_flow_sequence.md](ais_flow_sequence.md) (step-by-step with request/response notes)
 - Exit criteria: one repeatable happy path from consent creation to availability of endpoints to retrieve accounts and transactions (fetching is manual and must be triggered explicitly).
 
-Status (2026-04-09): Planning completed, implementation pending
+Status (2026-04-21): Implementation in progress
 - Detailed execution plan: [milestone_4_ais_implementation_plan.md](milestone_4_ais_implementation_plan.md)
+- Completed (PRs #14–#36): signing infrastructure, request adapter, consent service, accounts/transactions services, callback handling, QSeal cert management, TPP registration, consent creation flow with retry reuse, accounts fetch with `withBalance` support, `Account`/`AccountBalance` models and admin pages, pre-fetch accepted consent status check
+- Remaining: dedicated Consent and Event admin resources, transaction fetch admin action
 
 ### 5) Produce High-Level Functional Diagram
 - Create a system diagram covering actors: PSU, TPP, ASPSP (Account Servicing Payment Service Provider), IDS (Salt Edge internal actor term; confirm exact expansion in portal docs).
