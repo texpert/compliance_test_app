@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_21_100001) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_21_120000) do
   create_table "account_balances", force: :cascade do |t|
     t.integer "account_id", null: false
     t.decimal "amount", precision: 15, scale: 2, null: false
@@ -162,6 +162,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_21_100001) do
     t.index ["provider_id"], name: "index_qseal_certificates_on_provider_id"
   end
 
+  create_table "transactions", force: :cascade do |t|
+    t.integer "account_id", null: false
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.date "booking_date"
+    t.string "booking_status", null: false
+    t.datetime "created_at", null: false
+    t.string "creditor_iban"
+    t.string "creditor_name"
+    t.string "currency", null: false
+    t.string "debtor_iban"
+    t.string "debtor_name"
+    t.string "proprietary_bank_transaction_code"
+    t.json "raw_data", default: {}, null: false
+    t.text "remittance_information_unstructured"
+    t.string "transaction_id"
+    t.datetime "updated_at", null: false
+    t.date "value_date"
+    t.index ["account_id", "transaction_id"], name: "index_transactions_on_account_id_and_transaction_id", unique: true, where: "transaction_id IS NOT NULL"
+    t.index ["account_id"], name: "index_transactions_on_account_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
@@ -179,4 +200,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_21_100001) do
   add_foreign_key "providers", "companies"
   add_foreign_key "providers", "users", column: "representative_id"
   add_foreign_key "qseal_certificates", "providers"
+  add_foreign_key "transactions", "accounts"
 end

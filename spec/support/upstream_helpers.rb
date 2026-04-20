@@ -69,6 +69,29 @@ module UpstreamHelpers
     data = load_upstream_fixture(fixture_name)
     stub_transactions(account_id: account_id, consent_id: consent_id, transactions: data['transactions'])
   end
+
+  # Stub a multi-page paginated response. `pages` is an array of transactions hashes
+  # (each with 'booked'/'pending' keys). A _links.next.href is injected between pages
+  # so the service follows them in sequence.
+  def stub_paginated_transactions(account_id:, consent_id:, pages:, provider_code: 'artea_sandbox')
+    path_regex = %r{https://priora\.saltedge\.com/#{Regexp.escape(provider_code)}/api/berlingroup/v1/accounts/#{Regexp.escape(account_id)}/transactions.*}
+
+    responses = pages.each_with_index.map do |txs, idx|
+      body = { 'transactions' => txs }
+      unless idx == pages.length - 1
+        body['_links'] = {
+          'next' => {
+            'href' => "/#{provider_code}/api/berlingroup/v1/accounts/#{account_id}/transactions?paginated=1&offset=#{(idx + 1) * 50}"
+          }
+        }
+      end
+      { status: 200, body: body.to_json, headers: { 'Content-Type' => 'application/json' } }
+    end
+
+    stub_request(:get, path_regex)
+      .with(headers: { 'Consent-ID' => consent_id })
+      .to_return(*responses)
+  end
 end
 
 RSpec.configure do |config|

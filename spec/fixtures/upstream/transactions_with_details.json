@@ -1,0 +1,33 @@
+{
+  "transactions": {
+    "booked": [
+      {
+        "transactionId": "tx-001",
+        "bookingDate": "2026-01-15",
+        "valueDate": "2026-01-16",
+        "transactionAmount": { "amount": "-42.50", "currency": "EUR" },
+        "creditorName": "SuperMarket GmbH",
+        "creditorAccount": { "iban": "DE12345678901234567890" },
+        "remittanceInformationUnstructured": "Grocery shopping",
+        "proprietaryBankTransactionCode": "PMNT"
+      },
+      {
+        "transactionId": "tx-002",
+        "bookingDate": "2026-01-20",
+        "valueDate": "2026-01-21",
+        "transactionAmount": { "amount": "1500.00", "currency": "EUR" },
+        "debtorName": "Employer AG",
+        "debtorAccount": { "iban": "DE98765432109876543210" },
+        "remittanceInformationUnstructured": "Salary January 2026"
+      }
+    ],
+    "pending": [
+      {
+        "bookingDate": "2026-01-25",
+        "transactionAmount": { "amount": "-19.99", "currency": "EUR" },
+        "creditorName": "Online Shop",
+        "remittanceInformationUnstructured": "Order #99887"
+      }
+    ]
+  }
+}
