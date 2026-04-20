@@ -1,25 +1,25 @@
 # frozen_string_literal: true
 
 module UpstreamHelpers
-  def stub_create_consent(consent_id: 'consent-123', consent_status: 'received', sca_url: 'https://aspsp.example/sca')
+  def stub_create_consent(consent_id: 'consent-123', consent_status: 'received', sca_url: 'https://aspsp.example/sca', provider_code: 'artea_sandbox')
     upstream = {
       'consentId' => consent_id,
       'consentStatus' => consent_status,
       '_links' => { 'scaRedirect' => { 'href' => sca_url } }
     }
 
-    stub_request(:post, 'https://priora.saltedge.com/v1/consents')
+    stub_request(:post, "https://priora.saltedge.com/#{provider_code}/api/berlingroup/v1/consents")
       .to_return(status: 201, body: upstream.to_json, headers: { 'Content-Type' => 'application/json' })
 
     upstream
   end
 
-  def stub_consent_status(consent_id, statuses)
+  def stub_consent_status(consent_id, statuses, provider_code: 'artea_sandbox')
     responses = Array(statuses).map do |s|
       { status: 200, body: { consentStatus: s }.to_json, headers: { 'Content-Type' => 'application/json' } }
     end
 
-    stub_request(:get, "https://priora.saltedge.com/v1/consents/#{consent_id}/status")
+    stub_request(:get, "https://priora.saltedge.com/#{provider_code}/api/berlingroup/v1/consents/#{consent_id}/status")
       .to_return(*responses)
   end
 

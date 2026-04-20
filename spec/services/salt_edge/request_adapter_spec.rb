@@ -42,7 +42,7 @@ RSpec.describe SaltEdge::RequestAdapter do
       expect(result).to be_a(SaltEdge::RequestResult)
       expect(result).to be_success
       expect(result.data).to eq('ok' => true)
-      expect(signer).to have_received(:build_headers).with(method: 'post', path: '/v1/consents', body: '{"foo":"bar"}')
+      expect(signer).to have_received(:build_headers).with(method: 'post', path: '/v1/consents', body: '{"foo":"bar"}', additional_headers: {})
       expect(a_request(:post, 'https://priora.saltedge.com/v1/consents')).to have_been_made
     end
 

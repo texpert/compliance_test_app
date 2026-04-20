@@ -8,7 +8,7 @@
 #  callback_error       :text
 #  callback_params      :json             not null
 #  callback_received_at :datetime
-#  status               :string           default("received"), not null
+#  status               :string           default(NULL), not null
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  provider_id          :integer          not null
@@ -25,9 +25,10 @@
 #
 # Check Constraints
 #
-#  consents_status_check  (status IN ('accepted','received','valid','partiallyAuthorised','rejected','revokedByPsu','expired','terminatedByTpp'))
+#  consents_status_check  (status IN ('pending','accepted','received','valid','partiallyAuthorised','rejected','revokedByPsu','expired','terminatedByTpp'))
 #
 class Consent < ApplicationRecord
+  STATUS_PENDING = 'pending'
   STATUS_ACCEPTED = 'accepted'
   STATUS_RECEIVED = 'received'
   STATUS_VALID = 'valid'
@@ -42,6 +43,7 @@ class Consent < ApplicationRecord
 
   enum :status,
        {
+         pending: STATUS_PENDING,
          accepted: STATUS_ACCEPTED,
          received: STATUS_RECEIVED,
          valid: STATUS_VALID,

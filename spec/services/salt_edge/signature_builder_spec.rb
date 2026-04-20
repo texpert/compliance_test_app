@@ -70,6 +70,19 @@ RSpec.describe SaltEdge::SignatureBuilder do
       expect(signature).to include('signature="')
     end
 
+    it 'includes additional_headers in the signature headers list (lowercase)' do
+      headers = builder.build_headers(
+        method: 'POST',
+        path: '/v1/consents',
+        body: '{"test":"payload"}',
+        request_id: 'abc-123',
+        additional_headers: { 'TPP-Redirect-URI' => 'https://example.com/callback/42' }
+      )
+
+      signature = headers['Signature']
+      expect(signature).to include('headers="digest date x-request-id tpp-redirect-uri"')
+    end
+
     it 'includes X-Request-ID in headers' do
       headers = builder.build_headers(
         method: 'GET',

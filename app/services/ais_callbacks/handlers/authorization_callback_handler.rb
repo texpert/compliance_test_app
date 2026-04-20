@@ -5,7 +5,7 @@ module AisCallbacks
     class AuthorizationCallbackHandler
       # The handler only performs consent status reconciliation.
       # Accounts and transactions fetching are deferred to manual operator actions.
-      def initialize(consent_service: SaltEdge::ConsentService.new)
+      def initialize(consent_service: nil)
         @consent_service = consent_service
       end
 
@@ -26,7 +26,8 @@ module AisCallbacks
 
         # Note: incoming callback Event is recorded once by CallbackProcessor; handlers only record outgoing HTTP events.
 
-        consent_status = @consent_service.consent_status(consent.upstream_consent_id)
+        service = @consent_service || SaltEdge::ConsentService.new(certificate: consent.provider.latest_qseal_cert)
+        consent_status = service.consent_status(consent.upstream_consent_id)
         mapped_status = Consent.status_value(consent_status)
 
         Event.record(

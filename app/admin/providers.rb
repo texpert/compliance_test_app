@@ -22,6 +22,12 @@ ActiveAdmin.register Provider do
       link_to 'Register TPP', new_tpp_registration_admin_provider_path(resource)
     end
   end
+  action_item :create_consent, only: :show do
+    if resource.registration_request_sent_at.present?
+      link_to 'Create Consent', create_consent_admin_provider_path(resource),
+              method: :post, data: { confirm: 'Create a new consent for this provider?' }
+    end
+  end
 
   member_action :new_qseal_certificate, method: :get do
     @provider = resource
@@ -85,6 +91,46 @@ ActiveAdmin.register Provider do
       redirect_to admin_provider_path(provider),
                   alert: "TPP registration request failed: #{result.error.message}"
     end
+  end
+
+  member_action :create_consent, method: :post do
+    provider = resource
+    provider.update!(registered_at: 1.minute.ago) if provider.registered_at.nil?
+
+    cert = provider.latest_qseal_cert
+    unless cert
+      Event.record(event_type: 'consent_create', provider: provider,
+                   response_body: { 'error' => 'No issued QSeal certificate found' })
+      redirect_to admin_provider_path(provider), alert: 'No issued QSeal certificate found.'
+      next
+    end
+
+    # Reuse an existing pending consent if its last event recorded an error (retry scenario).
+    pending = provider.consents.status_pending.order(:created_at).last
+    last_event_errored = pending && pending.events.order(:occurred_at).last&.response_body&.key?('error')
+
+    consent = if last_event_errored
+                pending
+              else
+                begin
+                  provider.consents.create!(status: Consent::STATUS_PENDING, callback_params: {})
+                rescue => e
+                  Event.record(event_type: 'consent_create', provider: provider,
+                               response_body: { 'error' => "Failed to create local consent record: #{e.message}" })
+                  redirect_to admin_provider_path(provider), alert: "Failed to create consent: #{e.message}"
+                  next
+                end
+              end
+
+    # ConsentService records the event (with full request/response headers and body) before raising.
+    service = SaltEdge::ConsentService.new(certificate: cert)
+    resp = service.create_and_persist_consent(consent: consent, valid_until: Date.current + 180)
+
+    sca_note = resp['sca_redirect_url'].present? ? "SCA redirect: #{resp['sca_redirect_url']}" : 'No SCA redirect URL returned — check the Salt Edge UI for the authorisation link and open it in the browser.'
+    redirect_to admin_provider_path(provider),
+                notice: "Consent #{consent.id} created (status: #{resp['consent_status']}). #{sca_note}"
+  rescue => e
+    redirect_to admin_provider_path(provider), alert: "Failed to create consent: #{e.message}"
   end
 
   controller do
@@ -157,26 +203,48 @@ ActiveAdmin.register Provider do
       end
     end
 
-    panel 'TPP Registration Events', id: 'tpp_registration_events_panel' do
-      registration_events = resource.events.where(event_type: 'tpp_registration_request').order(occurred_at: :desc)
-      if registration_events.exists?
-        table_for registration_events do
-          column('Occurred At') { |e| e.occurred_at.strftime('%Y-%m-%d %H:%M UTC') }
-          column('Response') do |e|
-            status = e.response_body['status'] || e.response_body.dig('data', 'status')
-            error  = e.response_body['error']
-            if error
-              span error, style: 'color: #c0392b;'
-            elsif status
-              span status
-            else
-              span '✓ Success', style: 'color: #27ae60;'
+    columns do
+      column do
+        panel 'Consents', id: 'consents_panel' do
+          if resource.consents.exists?
+            table_for resource.consents.order(created_at: :desc) do
+              column(:id)
+              column(:status)
+              column('Upstream ID') { |c| c.upstream_consent_id || '—' }
+              column('Created') { |c| c.created_at.strftime('%Y-%m-%d %H:%M UTC') }
+            end
+          else
+            div class: 'blank_slate_container' do
+              span 'No consents yet.', class: 'blank_slate'
             end
           end
         end
-      else
-        div class: 'blank_slate_container' do
-          span 'No registration requests sent yet.', class: 'blank_slate'
+      end
+
+      column do
+        panel 'TPP events', id: 'tpp_events_panel' do
+          all_events = resource.events.order(occurred_at: :desc)
+          if all_events.exists?
+            table_for all_events do
+              column('Type') { |e| e.event_type }
+              column('Occurred At') { |e| e.occurred_at.strftime('%Y-%m-%d %H:%M UTC') }
+              column('Response') do |e|
+                status = e.response_body['status'] || e.response_body.dig('data', 'status')
+                error  = e.response_body['error']
+                if error
+                  span error, style: 'color: #c0392b;'
+                elsif status
+                  span status
+                else
+                  span '✓ Success', style: 'color: #27ae60;'
+                end
+              end
+            end
+          else
+            div class: 'blank_slate_container' do
+              span 'No events yet.', class: 'blank_slate'
+            end
+          end
         end
       end
     end
