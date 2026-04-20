@@ -36,11 +36,6 @@ module SaltEdge
 
       resp = map_response(result.data)
 
-      if resp['sca_redirect_url'].nil? && resp['consent_id'].present?
-        consent_data = fetch_consent(resp['consent_id'])
-        resp['sca_redirect_url'] = consent_data&.dig('_links', 'scaRedirect', 'href')
-      end
-
       consent.upstream_consent_id = resp['consent_id']
       consent.status = Consent.status_value(resp['consent_status'])
       consent.save!
@@ -122,14 +117,6 @@ module SaltEdge
 
     def uri_with_consent_id(base_uri, consent_id)
       "#{base_uri.chomp('/')}/callback/#{CGI.escape(consent_id.to_s)}"
-    end
-
-    def fetch_consent(upstream_consent_id)
-      result = @request_adapter.request(
-        method: :get,
-        path: "/#{@config.api_provider_code}/api/berlingroup/v1/consents/#{upstream_consent_id}"
-      )
-      result.success? ? result.data : nil
     end
   end
 end
