@@ -83,7 +83,6 @@ RSpec.describe SaltEdge::TransactionsService do
     end
 
     it 'URL-encodes the account_id in the path' do
-      # transactions fixture uses escaped account id when matching; re-use same fixture
       stub_transactions_from_fixture(account_id: 'acc%2Fweird+id', consent_id: 'consent-abc', fixture_name: 'transactions_basic')
 
       service.transactions(
@@ -94,6 +93,74 @@ RSpec.describe SaltEdge::TransactionsService do
       )
 
       expect(a_request(:get, 'https://priora.saltedge.com/artea_sandbox/api/berlingroup/v1/accounts/acc%2Fweird+id/transactions?bookingStatus=both&dateFrom=2026-01-01&dateTo=2026-01-31')).to have_been_made.once
+    end
+  end
+
+  describe '#transactions_page' do
+    let(:page1_booked) { [{ 'transactionId' => 'tx-1', 'transactionAmount' => { 'amount' => '-10.00', 'currency' => 'EUR' } }] }
+    let(:page2_booked) { [{ 'transactionId' => 'tx-2', 'transactionAmount' => { 'amount' => '-20.00', 'currency' => 'EUR' } }] }
+
+    it 'appends paginated=1 to the initial URL' do
+      stub_paginated_transactions(
+        account_id: 'acc-001', consent_id: 'consent-abc',
+        pages: [{ 'booked' => page1_booked, 'pending' => [] }]
+      )
+
+      service.transactions_page(
+        account_id: 'acc-001', consent_id: 'consent-abc',
+        date_from: Date.new(2026, 1, 1), date_to: Date.new(2026, 1, 31)
+      )
+
+      expect(a_request(:get, /paginated=1/)).to have_been_made.once
+    end
+
+    it 'returns transactions and next_href from the response' do
+      stub_paginated_transactions(
+        account_id: 'acc-001', consent_id: 'consent-abc',
+        pages: [
+          { 'booked' => page1_booked, 'pending' => [] },
+          { 'booked' => page2_booked, 'pending' => [] }
+        ]
+      )
+
+      result = service.transactions_page(
+        account_id: 'acc-001', consent_id: 'consent-abc',
+        date_from: Date.new(2026, 1, 1), date_to: Date.new(2026, 1, 31)
+      )
+
+      expect(result[:transactions]).to eq({ 'booked' => page1_booked, 'pending' => [] })
+      expect(result[:next_href]).to be_present
+    end
+
+    it 'returns nil next_href on the last page' do
+      stub_paginated_transactions(
+        account_id: 'acc-001', consent_id: 'consent-abc',
+        pages: [{ 'booked' => page1_booked, 'pending' => [] }]
+      )
+
+      result = service.transactions_page(
+        account_id: 'acc-001', consent_id: 'consent-abc',
+        date_from: Date.new(2026, 1, 1), date_to: Date.new(2026, 1, 31)
+      )
+
+      expect(result[:next_href]).to be_nil
+    end
+
+    it 'uses the given path directly when path: is provided' do
+      stub_paginated_transactions(
+        account_id: 'acc-001', consent_id: 'consent-abc',
+        pages: [{ 'booked' => page1_booked, 'pending' => [] }, { 'booked' => page2_booked, 'pending' => [] }]
+      )
+
+      # Simulate fetching first page to get next_href
+      first = service.transactions_page(
+        account_id: 'acc-001', consent_id: 'consent-abc',
+        date_from: Date.new(2026, 1, 1), date_to: Date.new(2026, 1, 31)
+      )
+      second = service.transactions_page(path: first[:next_href], consent_id: 'consent-abc')
+
+      expect(second[:transactions]).to eq({ 'booked' => page2_booked, 'pending' => [] })
+      expect(second[:next_href]).to be_nil
     end
   end
 end

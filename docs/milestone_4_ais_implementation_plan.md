@@ -146,6 +146,7 @@ NGROK_TUNNEL=true
   - [x] `SaltEdge::AccountsService` — extended with `with_balance:` param (`?withBalance=true`) *(PR #17, #36)*
   - [x] `SaltEdge::TransactionsService` *(PR #17)*
   - [x] `SaltEdge::AccountsFetchService` — upserts `Account` and `AccountBalance` records from upstream *(PR #36)*
+  - [x] `SaltEdge::TransactionsFetchService` — fetches and persists `Transaction` records; pagination loop driven by service layer (one page at a time) via `TransactionsService#transactions_page` *(PR #37)*
 
 ### Phase 4: ActiveAdmin UI, Provider Management, and State Management
 
@@ -180,8 +181,13 @@ This phase uses **ActiveAdmin** (without user authentication/authorization) as t
 #### Account and AccountBalance pages
 - [x] `Account` model — identified globally by `resource_id` (no FK to consent or provider); upsert key `resource_id` *(PR #36)*
 - [x] `AccountBalance` model — belongs to `account`; upsert key `(account_id, balance_type)` *(PR #36)*
-- [x] `ActiveAdmin::Accounts` — index (sorted by `updated_at desc`) + show with balances panel *(PR #36)*
+- [x] `ActiveAdmin::Accounts` — index (sorted by `updated_at desc`) + show with balances panel + Transactions panel (20 most recent; link to filtered index) + **Fetch Transactions** member action *(PR #36, #37)*
 - [x] `ActiveAdmin::AccountBalances` — show only, hidden from nav (`menu false`) *(PR #36)*
+
+#### Transaction pages and actions
+- [x] `Transaction` model — belongs to `account`; `booking_status` (`booked`/`pending`); partial unique index on `(account_id, transaction_id) WHERE transaction_id IS NOT NULL`; pending transactions have no stable ID and are replaced on each fetch *(PR #37)*
+- [x] `ActiveAdmin::Transactions` — index (filtered by account, booking_status, date range; sorted by `booking_date desc`) + show with all fields and raw JSON panel *(PR #37)*
+- [x] **Fetch Transactions** member action on Account show page — form with consent selector, date range (default 90 days ago → today), booking_status select (both/booked/pending), paginated checkbox; `accepted` consent triggers live status check before proceeding *(PR #37)*
 
 #### AIS workflow models and controllers (pre-ActiveAdmin)
 - [x] Create `Consent`, `Event`, and `Provider` models with AIS workflow migration *(PR #15)*

@@ -17,6 +17,7 @@
 #
 # Indexes
 #
+#  index_account_balances_on_account_id                   (account_id)
 #  index_account_balances_on_account_id_and_balance_type  (account_id,balance_type) UNIQUE
 #
 # Foreign Keys

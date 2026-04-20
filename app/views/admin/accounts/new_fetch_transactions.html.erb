@@ -1,0 +1,56 @@
+<h3>Fetch Transactions for Account <%= @account.resource_id %></h3>
+
+<%= form_with url: fetch_transactions_admin_account_path(@account), method: :post, local: true do |f| %>
+  <fieldset style="border:1px solid #ddd; border-radius:4px; padding:1em 1.25em; margin-bottom:1.25em;">
+    <legend style="font-weight:bold; padding:0 0.4em; color:#333;">Consent</legend>
+    <p style="color:#666; font-size:0.9em; margin:0 0 0.75em;">
+      Select a <strong>valid</strong> consent, or an <strong>accepted</strong> one — its status will be checked
+      live and the flow will proceed only if it has become valid.
+    </p>
+    <div class="input">
+      <%= f.label :consent_id, 'Consent' %><br>
+      <% consent_options = @eligible_consents.map do |c|
+           ["Consent #{c.id} [#{c.status_before_type_cast}] — #{c.upstream_consent_id} (#{c.provider.name})", c.id]
+         end %>
+      <% select_opts = @eligible_consents.one? ? { selected: @eligible_consents.first.id } : { prompt: 'Select a consent' } %>
+      <%= f.select :consent_id, consent_options, select_opts,
+                   { required: true, style: 'width:100%; max-width:640px;' } %>
+    </div>
+  </fieldset>
+
+  <fieldset style="border:1px solid #ddd; border-radius:4px; padding:1em 1.25em; margin-bottom:1.25em;">
+    <legend style="font-weight:bold; padding:0 0.4em; color:#333;">Date Range</legend>
+    <div style="display:flex; gap:2em; flex-wrap:wrap;">
+      <div class="input">
+        <%= f.label :date_from, 'From' %><br>
+        <%= f.date_field :date_from, value: 90.days.ago.to_date, style: 'width:180px;' %>
+      </div>
+      <div class="input">
+        <%= f.label :date_to, 'To' %><br>
+        <%= f.date_field :date_to, value: Date.current, style: 'width:180px;' %>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset style="border:1px solid #ddd; border-radius:4px; padding:1em 1.25em; margin-bottom:1.25em;">
+    <legend style="font-weight:bold; padding:0 0.4em; color:#333;">Options</legend>
+    <div class="input" style="margin-bottom:0.75em;">
+      <%= f.label :booking_status, 'Booking Status' %><br>
+      <%= f.select :booking_status,
+                   [['Both (booked + pending)', 'both'], ['Booked only', 'booked'], ['Pending only', 'pending']],
+                   { selected: 'both' },
+                   { style: 'width:220px;' } %>
+    </div>
+    <div class="input">
+      <label>
+        <%= check_box_tag :paginated, '1', false %>
+        Use paginated API (<code>paginated=true</code>)
+      </label>
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <%= f.submit 'Fetch Transactions', class: 'button' %>
+    <%= link_to 'Cancel', admin_account_path(@account), class: 'button' %>
+  </div>
+<% end %>

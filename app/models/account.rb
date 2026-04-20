@@ -15,11 +15,11 @@
 #  owner_name        :string
 #  product           :string
 #  raw_data          :json             not null
-#  resource_id       :string           not null
 #  status            :string
 #  usage             :string
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
+#  resource_id       :string           not null
 #
 # Indexes
 #
@@ -27,6 +27,7 @@
 #
 class Account < ApplicationRecord
   has_many :account_balances, dependent: :destroy
+  has_many :transactions, dependent: :destroy
 
   validates :resource_id, presence: true, uniqueness: true
   validates :currency, presence: true
