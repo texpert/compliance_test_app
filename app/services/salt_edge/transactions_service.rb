@@ -43,7 +43,7 @@ module SaltEdge
     end
 
     def transactions_path(account_id, date_from, date_to, booking_status)
-      "/v1/accounts/#{CGI.escape(account_id.to_s)}/transactions" \
+      "/#{@config.api_provider_code}/api/berlingroup/v1/accounts/#{CGI.escape(account_id.to_s)}/transactions" \
         "?bookingStatus=#{CGI.escape(booking_status)}" \
         "&dateFrom=#{date_from.iso8601}" \
         "&dateTo=#{date_to.iso8601}"

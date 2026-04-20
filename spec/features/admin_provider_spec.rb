@@ -189,4 +189,156 @@ RSpec.describe 'Admin Provider management', type: :feature do
       expect(page).to have_select('CA Certificate')
     end
   end
+
+  context 'Create Consent action' do
+    let!(:provider) do
+      create(:provider, name: 'Acme TPP', code: 'acme_tpp', company: company, representative: user,
+                        registration_request_sent_at: 1.hour.ago)
+    end
+
+    # --- Visibility ---
+
+    scenario 'shows Create Consent action item when registration request has been sent' do
+      visit admin_provider_path(provider)
+      expect(page).to have_link('Create Consent')
+    end
+
+    scenario 'does not show Create Consent action item before registration request is sent' do
+      provider.update!(registration_request_sent_at: nil)
+      visit admin_provider_path(provider)
+      expect(page).not_to have_link('Create Consent')
+    end
+
+    scenario 'provider show page has a Consents panel with empty-state message' do
+      visit admin_provider_path(provider)
+      expect(page).to have_css('#consents_panel')
+      within('#consents_panel') { expect(page).to have_content('No consents yet.') }
+    end
+
+    scenario 'provider show page has a TPP events panel with empty-state message' do
+      visit admin_provider_path(provider)
+      expect(page).to have_css('#tpp_events_panel')
+      within('#tpp_events_panel') { expect(page).to have_content('No events yet.') }
+    end
+
+    # --- Behaviour: no QSeal certificate ---
+
+    context 'when no issued QSeal certificate exists', js: true do
+      scenario 'sets registered_at, shows an error alert, and records a failure event' do
+        Flipper.enable(:ais_event_recording)
+        expect(provider.reload.registered_at).to be_nil
+
+        visit admin_provider_path(provider)
+        accept_confirm { click_link 'Create Consent' }
+
+        expect(page).to have_content('No issued QSeal certificate found.')
+        expect(provider.reload.registered_at).to be_present
+
+        event = Event.order(:created_at).last
+        expect(event.event_type).to eq('consent_create')
+        expect(event.response_body['error']).to eq('No issued QSeal certificate found')
+        expect(event.provider_id).to eq(provider.id)
+        expect(event.consent_id).to be_nil
+      end
+    end
+
+    # --- Behaviour: with issued QSeal certificate ---
+
+    context 'when an issued QSeal certificate exists' do
+      let!(:ca_cert_record) { CaRootCertificateCreator.create!(name: 'Test CA Root').first }
+      let!(:_cert) do
+        QsealCertificateCreator.create!(provider: provider, ca_certificate: ca_cert_record, name: 'Acme QSeal').first
+      end
+
+      context 'when upstream consent creation succeeds', js: true do
+        before { stub_create_consent(consent_id: 'con-upstream-1', consent_status: 'received') }
+
+        scenario 'sets registered_at and shows a success notice with consent details' do
+          expect(provider.reload.registered_at).to be_nil
+          visit admin_provider_path(provider)
+          accept_confirm { click_link 'Create Consent' }
+
+          expect(page).to have_content('created')
+          expect(page).to have_content('received')
+          expect(provider.reload.registered_at).to be_present
+        end
+
+        scenario 'the new consent appears in the Consents panel' do
+          visit admin_provider_path(provider)
+          accept_confirm { click_link 'Create Consent' }
+
+          within('#consents_panel') do
+            expect(page).to have_content('con-upstream-1')
+            expect(page).to have_content('received')
+          end
+        end
+
+        scenario 'the consent_create event appears in the TPP events panel' do
+          Flipper.enable(:ais_event_recording)
+          visit admin_provider_path(provider)
+          accept_confirm { click_link 'Create Consent' }
+
+          within('#tpp_events_panel') do
+            expect(page).to have_content('consent_create')
+          end
+        end
+      end
+
+      context 'when retrying after a previous upstream failure', js: true do
+        let!(:existing_consent) do
+          provider.consents.create!(status: Consent::STATUS_PENDING, callback_params: {})
+        end
+
+        before do
+          Event.create!(provider: provider, consent: existing_consent, event_type: 'consent_create',
+                        request_body: {}, request_headers: {},
+                        response_body: { 'error' => 'upstream failed' }, response_headers: {},
+                        occurred_at: Time.now.utc)
+          stub_create_consent(consent_id: 'con-retry-1', consent_status: 'received')
+        end
+
+        scenario 'reuses the existing pending consent rather than creating a new one' do
+          visit admin_provider_path(provider)
+          accept_confirm { click_link 'Create Consent' }
+
+          expect(page).to have_content("Consent #{existing_consent.id} created")
+          expect(Consent.count).to eq(1)
+        end
+      end
+
+      context 'when upstream consent creation fails', js: true do
+        before do
+          stub_request(:post, %r{priora\.saltedge\.com/artea_sandbox/api/berlingroup/v1/consents})
+            .to_return(status: 400, body: '{"tppMessages":[{"text":"provider not found"}]}',
+                       headers: { 'Content-Type' => 'application/json' })
+        end
+
+        scenario 'shows an error alert' do
+          visit admin_provider_path(provider)
+          accept_confirm { click_link 'Create Consent' }
+
+          expect(page).to have_content('Failed to create consent: provider not found')
+        end
+
+        scenario 'records a failure event visible in the TPP events panel' do
+          Flipper.enable(:ais_event_recording)
+          visit admin_provider_path(provider)
+          accept_confirm { click_link 'Create Consent' }
+
+          expect(page).to have_content('Failed to create consent: provider not found')
+          within('#tpp_events_panel') { expect(page).to have_content('consent_create') }
+        end
+
+        scenario 'still sets registered_at even though consent creation failed' do
+          visit admin_provider_path(provider)
+          accept_confirm { click_link 'Create Consent' }
+
+          expect(page).to have_content('Failed to create consent: provider not found')
+          within('.attributes_table') do
+            expect(page).to have_content(Date.today.strftime('%Y-%m-%d'))
+          end
+        end
+      end
+    end
+  end
 end

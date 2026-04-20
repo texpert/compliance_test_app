@@ -7,7 +7,7 @@ RSpec.describe 'AisConsents', type: :request do
   before do
     Flipper.enable(:ais_event_recording)
     # Provide a test config to the real service so it does not read real ENV
-    cfg = instance_double(SaltEdge::Config, api_base_url: 'https://priora.saltedge.com', redirect_uri: 'https://example.test/callback', psu_ip_address: '9.9.9.9', http_timeout: 5)
+    cfg = instance_double(SaltEdge::Config, api_base_url: 'https://priora.saltedge.com', callback_base_url: 'https://example.test', api_provider_code: 'artea_sandbox', psu_ip_address: '9.9.9.9', http_timeout: 5)
     allow(SaltEdge::Config).to receive(:new).and_return(cfg)
 
     # Stub signer to avoid requiring real qseal artifacts

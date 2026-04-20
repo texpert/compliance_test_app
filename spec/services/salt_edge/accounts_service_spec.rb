@@ -28,14 +28,14 @@ RSpec.describe SaltEdge::AccountsService do
       allow(signer).to receive(:build_headers).and_return(signed_headers)
     end
 
-    it 'requests GET /v1/accounts with Consent-ID header' do
+    it 'requests GET /artea_sandbox/api/berlingroup/v1/accounts with Consent-ID header' do
       # use canned fixture for accounts
       stub_accounts_from_fixture(consent_id: 'consent-abc', fixture_name: 'accounts_basic')
 
       result = service.accounts(consent_id: 'consent-abc')
 
       expect(
-        a_request(:get, 'https://priora.saltedge.com/v1/accounts').with(
+        a_request(:get, 'https://priora.saltedge.com/artea_sandbox/api/berlingroup/v1/accounts').with(
           headers: {
             'Consent-ID' => 'consent-abc',
             'Signature' => 'sig'
@@ -46,7 +46,7 @@ RSpec.describe SaltEdge::AccountsService do
     end
 
     it 'returns an empty array when the response contains no accounts key' do
-      stub_request(:get, 'https://priora.saltedge.com/v1/accounts')
+      stub_request(:get, 'https://priora.saltedge.com/artea_sandbox/api/berlingroup/v1/accounts')
         .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
 
       expect(service.accounts(consent_id: 'consent-abc')).to eq([])

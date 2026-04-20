@@ -42,7 +42,7 @@ RSpec.describe SaltEdge::RequestAdapter do
       expect(result).to be_a(SaltEdge::RequestResult)
       expect(result).to be_success
       expect(result.data).to eq('ok' => true)
-      expect(signer).to have_received(:build_headers).with(method: 'post', path: '/v1/consents', body: '{"foo":"bar"}')
+      expect(signer).to have_received(:build_headers).with(method: 'post', path: '/v1/consents', body: '{"foo":"bar"}', additional_headers: {})
       expect(a_request(:post, 'https://priora.saltedge.com/v1/consents')).to have_been_made
     end
 
@@ -57,7 +57,9 @@ RSpec.describe SaltEdge::RequestAdapter do
     end
 
     it 'returns failed RequestResult for non-2xx responses with normalized RequestError' do
-      stub_accounts_error(status: 400, body: { 'tppMessages' => [{ 'code' => 'FORMAT_ERROR', 'text' => 'Missing header' }] })
+      stub_request(:get, 'https://priora.saltedge.com/v1/accounts')
+        .to_return(status: 400, body: { 'tppMessages' => [{ 'code' => 'FORMAT_ERROR', 'text' => 'Missing header' }] }.to_json,
+                   headers: { 'Content-Type' => 'application/json' })
 
       result = adapter.request(method: :get, path: '/v1/accounts')
 

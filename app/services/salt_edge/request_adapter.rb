@@ -12,7 +12,7 @@ module SaltEdge
       @client = client
     end
 
-    def request(method:, path:, body: nil, headers: {}, signed: true, timeout: nil)
+    def request(method:, path:, body: nil, headers: {}, sign_headers: {}, signed: true, timeout: nil)
       if signed && @signer.nil?
         return SaltEdge::RequestResult.new(
           status: nil,
@@ -22,7 +22,7 @@ module SaltEdge
 
       method_name = method.to_s.downcase
       body_json = json_body(body)
-      signed_headers = signed ? @signer.build_headers(method: method_name, path: path, body: body_json) : {}
+      signed_headers = signed ? @signer.build_headers(method: method_name, path: path, body: body_json, additional_headers: sign_headers) : {}
       merged_headers = signed_headers.merge!(headers)
 
       response = @client

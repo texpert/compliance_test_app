@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_19_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_20_145901) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.integer "author_id"
     t.string "author_type"
@@ -82,12 +82,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_19_120000) do
     t.datetime "callback_received_at"
     t.datetime "created_at", null: false
     t.integer "provider_id", null: false
-    t.string "status", default: "received", null: false
+    t.string "status", default: "pending", null: false
     t.datetime "updated_at", null: false
     t.string "upstream_consent_id"
     t.index ["provider_id", "upstream_consent_id"], name: "index_consents_on_provider_upstream", unique: true
     t.index ["provider_id"], name: "index_consents_on_provider_id"
-    t.check_constraint "status IN ('accepted','received','valid','partiallyAuthorised','rejected','revokedByPsu','expired','terminatedByTpp')", name: "consents_status_check"
+    t.check_constraint "status IN ('pending','accepted','received','valid','partiallyAuthorised','rejected','revokedByPsu','expired','terminatedByTpp')", name: "consents_status_check"
   end
 
   create_table "events", force: :cascade do |t|

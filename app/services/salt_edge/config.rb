@@ -5,7 +5,7 @@ module SaltEdge
   #
   # Reads environment variables prefixed with SE_:
   #   SE_API_BASE_URL, SE_CALLBACK_BASE_URL, SE_REDIRECT_URI,
-  #   SE_CLIENT_ID, SE_CLIENT_SECRET, SE_PSU_IP_ADDRESS
+  #   SE_API_PROVIDER_CODE, SE_CLIENT_ID, SE_CLIENT_SECRET, SE_PSU_IP_ADDRESS
   #
   # Usage:
   #   cfg = SaltEdge::Config.new
@@ -21,6 +21,7 @@ module SaltEdge
       :client_id,
       :client_secret,
       :psu_ip_address,
+      api_provider_code: 'artea_sandbox',
       http_timeout_seconds: 30
 
     required :api_base_url,

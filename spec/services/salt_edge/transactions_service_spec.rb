@@ -34,7 +34,7 @@ RSpec.describe SaltEdge::TransactionsService do
       )
 
       expect(
-        a_request(:get, 'https://priora.saltedge.com/v1/accounts/acc-001/transactions?bookingStatus=both&dateFrom=2026-01-01&dateTo=2026-01-31').with(
+        a_request(:get, 'https://priora.saltedge.com/artea_sandbox/api/berlingroup/v1/accounts/acc-001/transactions?bookingStatus=both&dateFrom=2026-01-01&dateTo=2026-01-31').with(
           headers: {
             'Consent-ID' => 'consent-abc',
             'Signature' => 'sig'
@@ -55,7 +55,7 @@ RSpec.describe SaltEdge::TransactionsService do
         booking_status: 'booked'
       )
 
-      expect(a_request(:get, 'https://priora.saltedge.com/v1/accounts/acc-001/transactions?bookingStatus=booked&dateFrom=2026-01-01&dateTo=2026-01-31')).to have_been_made.once
+      expect(a_request(:get, 'https://priora.saltedge.com/artea_sandbox/api/berlingroup/v1/accounts/acc-001/transactions?bookingStatus=booked&dateFrom=2026-01-01&dateTo=2026-01-31')).to have_been_made.once
     end
 
     it 'defaults date_to to today and date_from to 30 days earlier' do
@@ -65,7 +65,7 @@ RSpec.describe SaltEdge::TransactionsService do
 
       service.transactions(account_id: 'acc-001', consent_id: 'consent-abc')
 
-      expect(a_request(:get, 'https://priora.saltedge.com/v1/accounts/acc-001/transactions?bookingStatus=both&dateFrom=2026-03-11&dateTo=2026-04-10')).to have_been_made.once
+      expect(a_request(:get, 'https://priora.saltedge.com/artea_sandbox/api/berlingroup/v1/accounts/acc-001/transactions?bookingStatus=both&dateFrom=2026-03-11&dateTo=2026-04-10')).to have_been_made.once
     end
 
     it 'returns an empty hash when the response contains no transactions key' do
@@ -93,7 +93,7 @@ RSpec.describe SaltEdge::TransactionsService do
         date_to: Date.new(2026, 1, 31)
       )
 
-      expect(a_request(:get, 'https://priora.saltedge.com/v1/accounts/acc%2Fweird+id/transactions?bookingStatus=both&dateFrom=2026-01-01&dateTo=2026-01-31')).to have_been_made.once
+      expect(a_request(:get, 'https://priora.saltedge.com/artea_sandbox/api/berlingroup/v1/accounts/acc%2Fweird+id/transactions?bookingStatus=both&dateFrom=2026-01-01&dateTo=2026-01-31')).to have_been_made.once
     end
   end
 end

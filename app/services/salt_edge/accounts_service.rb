@@ -15,7 +15,7 @@ module SaltEdge
     def accounts(consent_id:)
       response = @request_adapter.request(
         method: :get,
-        path: '/v1/accounts',
+        path: "/#{@config.api_provider_code}/api/berlingroup/v1/accounts",
         headers: { 'Consent-ID' => consent_id }
       )
       raise response.error if response.failure?

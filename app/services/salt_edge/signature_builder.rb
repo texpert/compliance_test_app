@@ -27,16 +27,17 @@ module SaltEdge
     # @param body [String, nil] Request body (nil or empty for GET)
     # @param request_id [String] Unique request ID
     # @param date [Time] Request date (typically now)
+    # @param additional_headers [Hash] Extra request headers to include in the signature
     #
     # @return [Hash] Headers hash with Digest, Signature, TPP-Signature-Certificate
-    def build_headers(method:, path:, body: nil, request_id: nil, date: nil)
+    def build_headers(method:, path:, body: nil, request_id: nil, date: nil, additional_headers: {})
       request_id ||= SecureRandom.uuid
       date ||= Time.current
       body_str = body.is_a?(String) ? body : (body ? body.to_json : '')
 
       {
         'Digest'                    => build_digest(body_str),
-        'Signature'                 => build_signature(request_id, date, body_str),
+        'Signature'                 => build_signature(request_id, date, body_str, additional_headers),
         'TPP-Signature-Certificate' => load_certificate_b64,
         'X-Request-ID'              => request_id,
         'Date'                      => date.httpdate
@@ -53,19 +54,23 @@ module SaltEdge
     end
 
     # Build the Signature header with RSA-SHA256.
-    # Signs digest, date, x-request-id per Salt Edge BerlinGroup spec.
-    def build_signature(request_id, date, body_str)
+    # Signs digest, date, x-request-id, plus any additional_headers per Salt Edge BerlinGroup spec.
+    def build_signature(request_id, date, body_str, additional_headers = {})
+      extra_pairs = additional_headers.map { |k, v| [k.downcase, v.to_s] }
+
       signing_string = [
         "digest: #{build_digest(body_str)}",
         "date: #{date.httpdate}",
-        "x-request-id: #{request_id}"
+        "x-request-id: #{request_id}",
+        *extra_pairs.map { |k, v| "#{k}: #{v}" }
       ].join("\n")
 
+      header_names = (['digest', 'date', 'x-request-id'] + extra_pairs.map(&:first)).join(' ')
       signature_b64 = Base64.strict_encode64(sign_with_private_key(signing_string))
 
       'Signature keyId="' + certificate_key_id + '",' \
       'algorithm="rsa-sha256",' \
-      'headers="digest date x-request-id",' \
+      "headers=\"#{header_names}\"," \
       'signature="' + signature_b64 + '"'
     end
 

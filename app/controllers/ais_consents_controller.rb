@@ -39,18 +39,6 @@ class AisConsentsController < ApplicationController
 
     consent_response = consent_service(provider).create_and_persist_consent(consent: consent)
 
-    begin
-      Event.record(
-        event_type: 'consent_create',
-        provider: provider,
-        consent: consent,
-        request_body: { consent_id: consent.id },
-        response_body: consent_response
-      )
-    rescue StandardError => e
-      Rails.logger.error("Event.record failed for consent #{consent.id}: #{e.message}")
-    end
-
     redirect_to consent_response.fetch('sca_redirect_url'), allow_other_host: true
   rescue ActiveRecord::RecordInvalid => e
     render json: { error: 'consent_persist_failed', message: e.message }, status: :unprocessable_content
