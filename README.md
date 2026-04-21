@@ -45,13 +45,16 @@ environment needs encryption keys stored in its credentials file.
 **If you have the project's `.key` files** (obtained securely), place them at
 `config/credentials/development.key` and `config/credentials/test.key` — then skip to step 4.
 
-**If starting fresh**, generate and install encryption keys for each environment:
+**If starting fresh, not having the keys**, generate and install encryption keys for each environment:
 
 ```bash
-# 1. Generate keys (prints an active_record_encryption: block — copy the output)
+# 1. Ensure the config/credentials folder is empty
+rm config/credentials/*
+
+# 2. Generate keys (prints an active_record_encryption: block — copy the output)
 bin/rails db:encryption:init
 
-# 2. Paste the block into each environment's credentials file
+# 3. Paste the block into each environment's credentials file
 EDITOR="nano --wait" bin/rails credentials:edit --environment development
 EDITOR="nano --wait" bin/rails credentials:edit --environment test
 ```
