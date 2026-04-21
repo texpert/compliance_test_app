@@ -7,9 +7,6 @@ RSpec.describe SaltEdge::Config do
     {
       "SE_API_BASE_URL"         => "https://priora.saltedge.com",
       "SE_CALLBACK_BASE_URL"    => "https://example.ngrok.io",
-      "SE_REDIRECT_URI"         => "https://example.ngrok.io/callback",
-      "SE_CLIENT_ID"            => nil,
-      "SE_CLIENT_SECRET"        => nil,
       "SE_PSU_IP_ADDRESS"       => nil,
       "SE_HTTP_TIMEOUT_SECONDS" => nil
     }
@@ -32,7 +29,6 @@ RSpec.describe SaltEdge::Config do
     %w[
       SE_API_BASE_URL
       SE_CALLBACK_BASE_URL
-      SE_REDIRECT_URI
     ].each do |var|
       it "raises when #{var} is missing" do
         expect { build_config(var => nil) }.to raise_error(Anyway::Config::ValidationError, /#{var.sub("SE_", "").downcase}/)
@@ -51,10 +47,6 @@ RSpec.describe SaltEdge::Config do
       expect(config.callback_base_url).to eq('https://example.ngrok.io')
     end
 
-    it 'reads redirect_uri from SE_REDIRECT_URI' do
-      expect(config.redirect_uri).to eq('https://example.ngrok.io/callback')
-    end
-
     it 'defaults http_timeout_seconds to 30 when SE_HTTP_TIMEOUT_SECONDS is unset' do
       expect(config.http_timeout_seconds).to eq(30)
     end
@@ -63,30 +55,12 @@ RSpec.describe SaltEdge::Config do
       expect(config.http_timeout).to eq(30)
     end
 
-    it 'defaults client_id to nil' do
-      expect(config.client_id).to be_nil
-    end
-
-    it 'defaults client_secret to nil' do
-      expect(config.client_secret).to be_nil
-    end
-
     it 'defaults psu_ip_address to nil' do
       expect(config.psu_ip_address).to be_nil
     end
   end
 
   describe 'optional attributes' do
-    it 'reads client_id from SE_CLIENT_ID when set' do
-      config = build_config('SE_CLIENT_ID' => 'my-client-id')
-      expect(config.client_id).to eq('my-client-id')
-    end
-
-    it 'reads client_secret from SE_CLIENT_SECRET when set' do
-      config = build_config('SE_CLIENT_SECRET' => 'test-client-secret')
-      expect(config.client_secret).to eq('test-client-secret')
-    end
-
     it 'reads psu_ip_address from SE_PSU_IP_ADDRESS when set' do
       config = build_config('SE_PSU_IP_ADDRESS' => '1.2.3.4')
       expect(config.psu_ip_address).to eq('1.2.3.4')
@@ -99,22 +73,4 @@ RSpec.describe SaltEdge::Config do
     end
   end
 
-  describe '#credentials?' do
-    it 'returns false when client_id and client_secret are absent' do
-      expect(build_config.credentials?).to be false
-    end
-
-    it 'returns false when only client_id is set' do
-      expect(build_config('SE_CLIENT_ID' => 'id').credentials?).to be false
-    end
-
-    it 'returns false when only client_secret is set' do
-      expect(build_config('SE_CLIENT_SECRET' => 'test-secret').credentials?).to be false
-    end
-
-    it 'returns true when both client_id and client_secret are set' do
-      config = build_config('SE_CLIENT_ID' => 'test-id', 'SE_CLIENT_SECRET' => 'test-secret')
-      expect(config.credentials?).to be true
-    end
-  end
 end

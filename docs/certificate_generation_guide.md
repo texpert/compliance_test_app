@@ -89,15 +89,16 @@ openssl x509 -req -days 360 -extfile client_openssl.cnf -extensions cert_ext -in
 ```
 
 ## 8) Check certificate validity and information
-This can be done using Salt Edge TPP Verifier service:
-- https://priora.saltedge.com/docs/tpp_verifier#certificates-verify-v2
 
-For more information:
-- https://priora.saltedge.com/docs/tpp_verifier#certificates-verify
+```bash
+openssl x509 -in client_signed_certifcate.crt -noout -subject -issuer -serial -startdate -enddate
+openssl x509 -in client_signed_certifcate.crt -noout -fingerprint -sha256
+openssl x509 -in client_signed_certifcate.crt -noout -text | grep -E "Subject:|organizationIdentifier|qcStatements|X509v3"
+```
 
 ## 9) TLS Cipher Suite Policy (PSD2 API)
 
-> Source: https://priora.saltedge.com/docs/tpp_verifier#changelog (announced 23 Dec 2021, effective 3 Feb 2022)
+> Source: Salt Edge Priora changelog (announced 23 Dec 2021, effective 3 Feb 2022)
 
 ### Removed (no longer supported)
 ```

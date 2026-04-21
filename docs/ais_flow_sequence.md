@@ -5,7 +5,7 @@ Document one reproducible happy-path run from consent creation to availability o
 
 ## Run Metadata
 - Date/time: 2026-04-20
-- Environment: Artea sandbox (`artea_sandbox` provider code)
+- Environment: Artea sandbox (Salt Edge API path prefix: `artea_sandbox`)
 - App commit hash: cee0b0f (feature/admin-consent-flow)
 - ngrok tunnel: `https://1330-109-185-141-9.ngrok-free.app`
 
