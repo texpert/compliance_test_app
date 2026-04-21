@@ -8,7 +8,7 @@ RSpec.describe 'AisAccounts', type: :request do
 
   before do
     Flipper.enable(:ais_event_recording)
-    cfg = instance_double(SaltEdge::Config, api_base_url: 'https://priora.saltedge.com', redirect_uri: 'https://example.test/callback', psu_ip_address: '9.9.9.9', http_timeout: 5)
+    cfg = instance_double(SaltEdge::Config, api_base_url: 'https://priora.saltedge.com', psu_ip_address: '9.9.9.9', http_timeout: 5)
     allow(SaltEdge::Config).to receive(:new).and_return(cfg)
 
     signer = instance_double(SaltEdge::SignatureBuilder)

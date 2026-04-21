@@ -1,5 +1,10 @@
 # Local QSEAL Storage Instructions
 
+> **Scope**: This guide covers storage of QSEAL artifacts for the **TPP registration phase** only
+> (certificate generation and `tpp/register` submission). The Rails app does **not** read certs
+> from local files — it reads from the `certificates` DB table, with the private key encrypted via
+> ActiveRecord::Encryption. See `README.md` Setup step 3 for encryption key setup.
+
 This guide defines how to store QSEAL artifacts locally, outside git, for Milestone 2 and later TPP registration.
 
 ## Policy
@@ -29,15 +34,12 @@ chmod 600 "./secrets/qseal/guide_YYYY-MM-DD-<attempt-tag>/ca_certificate.crt"
 ```
 
 ## Shell Script Usage
-The shell scripts in `script/` read cert/key files directly and use `SE_QSEAL_CERT_PATH`,
-`SE_QSEAL_KEY_PATH`, and `SE_QSEAL_PUBLIC_KEY_PATH` from `.env`. Set these to the attempt
-folder paths (example only):
 
-```bash
-SE_QSEAL_CERT_PATH=./secrets/qseal/guide_YYYY-MM-DD-<attempt-tag>/client_signed_certifcate.crt
-SE_QSEAL_KEY_PATH=./secrets/qseal/guide_YYYY-MM-DD-<attempt-tag>/client_private.key
-SE_QSEAL_PUBLIC_KEY_PATH=./secrets/qseal/guide_YYYY-MM-DD-<attempt-tag>/client_public.key
-```
+The TPP registration investigation scripts (`tpp_register_replay_success_shape.sh`,
+`tpp_register_signature_diagnostics.sh`) have been archived to `script/archives/`. They are no
+longer part of the active workflow. The `SE_QSEAL_*` and `SE_TPP_*` variables they required have
+been removed from `.env.example`; a snapshot of those variables is preserved in
+`script/archives/env.example.snapshot` for reference.
 
 **The Rails app does not read certs from files.** Certificate PEM and private key are stored in
 the `certificates` table (private key encrypted via ActiveRecord::Encryption) and injected into

@@ -13,7 +13,7 @@
 - Transactions: Berlin Group spec §7.4 — transaction list with date filters
 
 ## TLS Cipher Suite Policy
-> Source: https://priora.saltedge.com/docs/tpp_verifier#changelog (announced 23 Dec 2021, effective 3 Feb 2022)
+> Source: Salt Edge Priora changelog (announced 23 Dec 2021, effective 3 Feb 2022)
 
 The following CBC-mode cipher suites are **no longer supported** on PSD2 (Payment Services Directive 2) APIs since 3 Feb 2022:
 - `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`

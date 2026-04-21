@@ -4,8 +4,8 @@ module SaltEdge
   # Typed, validated configuration for Salt Edge API integration.
   #
   # Reads environment variables prefixed with SE_:
-  #   SE_API_BASE_URL, SE_CALLBACK_BASE_URL, SE_REDIRECT_URI,
-  #   SE_API_PROVIDER_CODE, SE_CLIENT_ID, SE_CLIENT_SECRET, SE_PSU_IP_ADDRESS
+  #   SE_API_BASE_URL, SE_CALLBACK_BASE_URL,
+  #   SE_API_PROVIDER_CODE, SE_PSU_IP_ADDRESS
   #
   # Usage:
   #   cfg = SaltEdge::Config.new
@@ -17,25 +17,17 @@ module SaltEdge
     attr_config \
       :api_base_url,
       :callback_base_url,
-      :redirect_uri,
-      :client_id,
-      :client_secret,
       :psu_ip_address,
       api_provider_code: 'artea_sandbox',
       http_timeout_seconds: 30
 
     required :api_base_url,
-             :callback_base_url,
-             :redirect_uri
+             :callback_base_url
 
     coerce_types http_timeout_seconds: :integer
 
     def http_timeout
       http_timeout_seconds.to_i
-    end
-
-    def credentials?
-      client_id.present? && client_secret.present?
     end
   end
 end

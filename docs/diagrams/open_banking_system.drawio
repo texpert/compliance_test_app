@@ -74,7 +74,7 @@
           <mxGeometry x="150" y="310" width="220" height="80" as="geometry"/>
         </mxCell>
 
-        <mxCell id="tpp_db" value="PostgreSQL&#xa;Providers · Consents · Events&#xa;Accounts · AccountBalances&#xa;Transactions"
+        <mxCell id="tpp_db" value="SQLite&#xa;Providers · Consents · Events&#xa;Accounts · AccountBalances&#xa;Transactions"
           style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;"
           vertex="1" parent="tpp_col">
           <mxGeometry x="150" y="440" width="220" height="100" as="geometry"/>
@@ -299,7 +299,7 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- Services → PostgreSQL DB (persist/upsert) -->
+        <!-- Services → SQLite DB (persist/upsert) -->
         <mxCell id="a_db1" value="persist"
           style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;"
           edge="1" parent="1" source="consent_svc" target="tpp_db">

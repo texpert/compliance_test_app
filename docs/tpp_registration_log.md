@@ -41,7 +41,6 @@
 ## Result
 - Registration status: Async pending — latest submission accepted by API, awaiting Priora async validation (see attempts below)
 - Token or authorization entrypoint reachable: Pending
-- TPP Verifier endpoint probe: Executed `POST https://priora.saltedge.com/api/tpp_verifiers/v2/certificates` with PEM certificate payload
 - TPP Register prerequisite probe: Executed `POST https://priora.saltedge.com/api/berlingroup/v1/tpp/register` with signed request and provided company/representative payload
 - TPP Register response status: `200`
 - TPP Register response message: `Request is processed. We will send the response to branzeanu.aurel@gmail.com`
@@ -56,17 +55,6 @@
 - TPP Register resubmission message (attempt 6): `Request is processed. We will send the response to branzeanu.aurel@gmail.com`
 - TPP Register resubmission status (attempt 7, `base64 -b 0` instead of `openssl base64 -A`): `200`
 - TPP Register resubmission message (attempt 7): `Request is processed. We will send the response to branzeanu.aurel@gmail.com`
-- TPP Verifier response status: `404` (six attempts — see Issues table)
-- TPP Verifier response error: `TppVerifierClientNotFound`
-- Failure classification: **superseded** — prerequisite registration is now accepted (`tpp/register` HTTP `200`). Re-check TPP Verifier only after Priora confirmation/provisioning completes.
-- Note: App-Id `U96f1TRY…` is from the **connection details tab** of the Priora portal — this is exactly what the TPP Verifier docs specify as the credential source. Previous classification that these were "not TPP Verifier credentials" was **incorrect**.
-- Verbose curl evidence (attempt 5, 2026-04-04):
-  - TLS handshake to `priora.saltedge.com:443`: ✅ successful, server cert verified via OpenSSL
-  - Request line: `POST /api/tpp_verifiers/v2/certificates HTTP/1.1` ✅
-  - Headers sent: `App-Id`, `App-Secret`, `Content-Type: application/json` ✅
-  - Payload: 1,475 bytes uploaded completely ✅
-  - Response: `HTTP/1.1 404 Not Found` — `TppVerifierClientNotFound`
-  - **Conclusion**: the request is technically well-formed in every dimension. The 404 is application-level: no TPP Verifier client record exists in the Salt Edge backend for this App-Id. This is a backend provisioning issue, not a credential-format or network issue.
 - Redacted credential-source evidence (Artea sandbox docs, retrieved 2026-04-04):
   - `Username`: `aR***AW`
   - `Password`: `ZN***<b`
@@ -81,7 +69,7 @@
 - Successful replay evidence archived: `docs/tpp_register_artifacts/2026-04-04-success-vs-2026-04-06-latest/replay_success_shape_2026-04-07/tpp_register_replay_trace_ca_true_attempt_jq_compact_binary_success.txt`.
 - New replay with PSD2 qcStatements SEQUENCE + `CA:FALSE` cert (`guide_2026-04-07-texpert-v4-qcseq-ca-false`) is also accepted: `HTTP 200`, `x-request-id` `ff9f899e-ce21-4fe7-8a2e-74142350fca4`, digest `SHA-256=4p9hI1sW/l0GY3dZZJtUh+zJsTB7IxzAhBsF+6zFQ1A=`.
 - v4 success evidence archived: `docs/tpp_register_artifacts/2026-04-04-success-vs-2026-04-06-latest/replay_success_shape_2026-04-07/tpp_register_replay_trace_v4_qcseq_ca_false_success.txt`.
-- Historical note: references to `script/tpp_register_retry.sh` in older rows are evidence-only; that script was removed during housekeeping. Current canonical register helper is `script/tpp_register_replay_success_shape.sh`.
+- Historical note: references to `script/tpp_register_retry.sh` in older rows are evidence-only; that script was removed during housekeeping. The replay script (`script/tpp_register_replay_success_shape.sh`) has been archived to `script/archives/` as investigation-only.
 - Latest UK variant (attempt 11, `guide_2026-04-07-texpert-bank-uk-04`) was also accepted synchronously by `tpp/register` and then rejected by email as `given certificate is invalid`, despite changing the CA/client DN country to `UK`, using a new portal app/public-key upload for `Texpert Bank UK`, and signing with the fresh `texpert_bank_uk` keypair.
 - Updated blocker: this is no longer consistent with a single Moldova-specific DN/profile mismatch. Priora accepts the signed submission contract across multiple request shapes and certificate families, but its async validator still rejects without field-level reason. Waiting on Salt Edge support remains the only actionable next step.
 - **New data point (2026-04-08)**: UK attempts returned a specific error `country UK was not found`, proving Priora CAN expose field-level rejection reasons. This means Moldova's `C=MD` passes country validation. Something else in the certificate profile (extension, encoding, or chain) is unacceptable — but Priora is silently returning only `certificate is invalid` for it. This is the strongest argument for the support escalation: the system CAN report specifics and is choosing not to for the Moldova failure.
@@ -91,14 +79,7 @@
 |---|---|---|---|---|
 | 2026-04-04 | Guide execution (`oid_section`) | OpenSSL OID registration conflict (`organizationIdentifier` already exists) | Removed explicit `oid_section` alias lines in local configs; used built-in OID mapping | Local run notes |
 | 2026-04-04 | Client cert signing | Malformed local extension line from interrupted terminal input (`keyUsage` parse error) | Rewrote local `client_openssl.cnf` and re-ran signing successfully | Local run notes |
-| 2026-04-04 | Salt Edge TPP Verifier API check (sample docs headers) | `404` / `TppVerifierClientNotFound` | Confirmed endpoint and PEM payload format are correct; sample docs `App-Id` is not valid in this environment | https://priora.saltedge.com/docs/tpp_verifier#certificates-verify |
-| 2026-04-04 | Salt Edge TPP Verifier API check (Option B: Artea OAuth creds) | `404` / `TppVerifierClientNotFound` | Confirmed Artea OAuth test credentials are not TPP Verifier `App-Id`/`App-Secret`; need verifier client credentials from portal connection details | https://priora.saltedge.com/docs/berlingroup/artea_sandbox |
 | 2026-04-04 | Priora app registration update | Priora portal unavailable for >15 minutes | Retry portal update when service recovers; keep Milestone 0 and Milestone 2 verification status pending | https://priora.saltedge.com/ |
-| 2026-04-04 | Salt Edge TPP Verifier API check (Priora app credentials, attempt 3) | `404` / `TppVerifierClientNotFound` — App-Id `U96f1TRY…` echoed in error body | **Classification revised**: credentials ARE from connection details tab (correct source per docs). Prior resolution was wrong. | https://priora.saltedge.com/docs/tpp_verifier#certificates-verify |
-| 2026-04-04 | TPP Verifier curl format vs docs | Probe used `--data-binary` + `jq` shell expansion; docs example uses `-d` with inline JSON | **Resolved — format not the cause**: retry with docs-compliant `-d` format returns identical `404 TppVerifierClientNotFound`. Request format ruled out. | https://priora.saltedge.com/docs/tpp_verifier#certificates-verify |
-| 2026-04-04 | TPP Verifier App-Id not provisioned (attempt 4, docs-compliant format) | `404` / `TppVerifierClientNotFound` — same error regardless of request format | **Root cause confirmed**: App-Id `U96f1TRYSVZdaGOOVwiF4g` is not registered as a TPP Verifier client in Salt Edge backend. Contact Salt Edge support to provision TPP Verifier client or identify correct credential source. | https://priora.saltedge.com/docs/tpp_verifier#certificates-verify |
-| 2026-04-04 | TPP Verifier verbose probe (attempt 5) | `404` / `TppVerifierClientNotFound` — TLS ✅, headers ✅, 1,475-byte payload fully uploaded ✅ | **Definitive**: request is provably correct at every layer (TLS, HTTP, JSON payload). 404 is application-level. Backend provisioning gap confirmed. Escalate to Salt Edge support. | https://priora.saltedge.com/docs/tpp_verifier#certificates-verify |
-| 2026-04-04 | TPP Verifier trace-ascii probe (attempt 6) | `404` / `TppVerifierClientNotFound` — `--trace-ascii` shows full outgoing JSON with PEM certificate and `Content-Length: 1475` | **Confirmed again**: complete request payload is transmitted exactly as intended; backend still returns client-not-found. Provisioning issue remains. | https://priora.saltedge.com/docs/tpp_verifier#certificates-verify |
 | 2026-04-04 | TPP Register call (attempt 1, bash+curl with computed Digest/Signature) | `400` / `REQUEST_FORMAT_INVALID` — `Header 'Signature' invalid: Malformed signature` | Registration prerequisite identified and attempted; payload accepted structurally, but signature header format is rejected. Need Salt Edge-confirmed signature header format for this endpoint before retrying verifier workflow. | https://priora.saltedge.com/docs/berlingroup/artea_sandbox/certificates#tpp-register |
 | 2026-04-04 | QSEAL regeneration (Texpert DN alignment) | Previous cert DN did not match portal legal entity fields | Generated new local cert/key/public key in `~/secrets/saltedge/qseal/guide_2026-04-04-texpert` with subject `CN=Texpert Bank, O=Texpert Bank S.A., C=MD, ST=Chisinau, organizationIdentifier=PGB-123`; waiting for portal public-key update before next `tpp/register` retry | Local run notes |
 | 2026-04-04 | TPP Register call (attempt 2, bash+curl after portal key update + regenerated cert) | `200` / request accepted | `tpp/register` accepted with message: `Request is processed. We will send the response to branzeanu.aurel@gmail.com`. Prerequisite is now satisfied from API perspective; next step is waiting for confirmation and then re-testing verifier endpoint. | https://priora.saltedge.com/docs/berlingroup/artea_sandbox/certificates#tpp-register |
@@ -146,19 +127,6 @@
 - Canonical full secret bundle (git-ignored): `./secrets/qseal/guide_2026-04-09-texpert/texpert.zip`
 
 Notes: This is the canonical snapshot of the run that produced an API-accepted submission. Priora will perform asynchronous validation; await email for final decision. If rejected, include the X-Request-ID above when escalating to Salt Edge support.
-
-### Docs-Compliant Retry Command
-```bash
-ATTEMPT_ID="guide_YYYY-MM-DD-<attempt-tag>"
-CERT_PEM=$(cat "./secrets/qseal/$ATTEMPT_ID/client_signed_certifcate.crt")
-curl -s -w "\n\nHTTP_STATUS:%{http_code}" \
-  -X POST "https://priora.saltedge.com/api/tpp_verifiers/v2/certificates" \
-  -H "App-Id: $SE_APP_ID" \
-  -H "App-Secret: $SE_APP_SECRET" \
-  -H "Content-Type: application/json" \
-  -d "{\"data\":{\"certificate\":\"$(echo "$CERT_PEM" | awk '{printf "%s\\n", $0}')\"}}"
-```
-_(Load `SE_APP_ID` / `SE_APP_SECRET` from `.env` before running.)_
 
 ## Secret Handling Confirmation
 - Private keys, CSR bodies, passphrases, and PKCS#12 contents are intentionally not recorded in this file.

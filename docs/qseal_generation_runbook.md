@@ -159,52 +159,6 @@ openssl x509 -in client_signed_certifcate.crt -noout -fingerprint -sha256
 openssl x509 -in client_signed_certifcate.crt -noout -text | grep -E "Subject:|organizationIdentifier|qcStatements|X509v3"
 ```
 
-### 9) Verify certificate via Salt Edge TPP Verifier (PEM string input)
-The API expects the certificate as a **PEM string** in `data.certificate`.
-Use the dedicated script (reads `.env` automatically):
-
-```bash
-script/tpp_verifier_check.sh
-```
-
-Or manually:
-
-```bash
-ATTEMPT_ID="guide_YYYY-MM-DD-<attempt-tag>"
-ATTEMPT_DIR="./secrets/qseal/$ATTEMPT_ID"
-CERT_PATH="$ATTEMPT_DIR/client_signed_certifcate.crt"
-APP_ID="<your_tpp_verifier_app_id>"
-APP_SECRET="<your_tpp_verifier_app_secret>"
-
-PAYLOAD=$(jq -Rn --arg cert "$(cat "$CERT_PATH")" '{data:{certificate:$cert}}')
-
-curl -sS -o /tmp/tpp_verifier_response.json -w "%{http_code}\n" \
-  -H "App-Id: $APP_ID" \
-  -H "App-Secret: $APP_SECRET" \
-  -H "Content-Type: application/json" \
-  -d "$PAYLOAD" \
-  "https://priora.saltedge.com/api/tpp_verifiers/v2/certificates"
-
-cat /tmp/tpp_verifier_response.json | jq .
-```
-
-Expected successful result:
-- HTTP `200`
-- `data.certificate.fingerprint` present
-- `data.eligible` and `data.mode` present
-
-If credentials are invalid/missing:
-- Non-200 response (for example `404` with `TppVerifierClientNotFound`)
-- Treat this as an environment credential blocker, not a certificate-format failure
-
-Error classification quick guide:
-- `TppVerifierClientNotFound` -> **credential-scope** (wrong `App-Id`/`App-Secret`)
-- `WrongRequiredFields` -> **payload/certificate-content scope**
-
-Note from Option B test:
-- Artea sandbox `Test credentials (Oauth)` values (`Username`/`Password`/`OTP`) were tested and are **not** valid TPP Verifier `App-Id`/`App-Secret` credentials.
-- These OAuth creds are for sandbox user/auth flows, not verifier client connection details.
-
 ## Notes from Actual Run
 - For OpenSSL `1.1.1d+` and `3.x`, you must not add `oid_section` alias blocks for `organizationIdentifier` (`2.5.4.97`); this OID is built-in and aliasing it fails with `oid exists`.
 - Keep all other config fields unchanged and ensure these alias lines are absent in local files:
@@ -233,8 +187,6 @@ Note from Option B test:
 - Certificate chain ready: self-signed CA cert + signed client cert generated locally. **COMPLETED (2026-04-09)**
 - Certificate fingerprint ready: extracted and recorded in [tpp_registration_log.md](tpp_registration_log.md) and `docs/tpp_register_artifacts/2026-04-09-texpert/analysis.md`.
 - Secret handling respected: no key/CSR/P12 content committed to git.
-- TPP Verifier success (`HTTP 200`) with valid verifier client credentials: **pending** (requires `App-Id`/`App-Secret` from Priora connection details or provisioning).
-
 Artifacts (canonical)
 - Safe extracted docs view: `docs/tpp_register_artifacts/2026-04-09-texpert/texpert/`
 - Canonical full secret bundle (git-ignored): `./secrets/qseal/guide_2026-04-09-texpert/texpert.zip`

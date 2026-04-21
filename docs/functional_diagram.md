@@ -19,7 +19,7 @@ functional blocks required by Milestone 5.
 | Block | Actor | Description |
 |---|---|---|
 | **Consent Management** | TPP + Salt Edge | Create, status-check, and update consent records (accepted → valid → expired). |
-| **Account Services** | TPP + Salt Edge + ASPSP | Fetch account list with optional balance data per `resourceId`; upsert into PostgreSQL. |
+| **Account Services** | TPP + Salt Edge + ASPSP | Fetch account list with optional balance data per `resourceId`; upsert into SQLite. |
 | **TPP Certificate Verification** | Salt Edge | Validate QSEAL certificate (eIDAS, PSD2 `QCStatement`, `PSP_AI` role) on every signed request. |
 | **ASPSP Reports** | Salt Edge | Activity logs and API access reports visible via Priora portal for the ASPSP operator. |
 | **ASPSP Dashboard** | Salt Edge | Portal view for ASPSP to inspect consents, authorisations, and connected TPPs. |
@@ -36,9 +36,9 @@ functional blocks required by Milestone 5.
 ④  PSU logs in and approves consent; Artea redirects browser to GET /callback/:consent_id
     TPP checks consent status (GET /consents/{id}/status) and marks consent valid
 ⑤  Admin triggers "Fetch Accounts"; TPP GETs /accounts (signed, Consent-ID header)
-    Accounts and balances upserted in PostgreSQL
+    Accounts and balances upserted in SQLite
 ⑥  Admin triggers "Fetch Transactions"; TPP GETs /accounts/{id}/transactions
-    Transactions upserted (booked) or recreated (pending) in PostgreSQL
+    Transactions upserted (booked) or recreated (pending) in SQLite
 ⑦  (Manual) Admin reads SCA URL from Priora portal when scaRedirect is absent in API response
 ```
 
@@ -58,7 +58,7 @@ flowchart LR
     AccountsSvc["AccountsService"]
     TransactionsSvc["TransactionsService"]
     SigningSvc["SigningService\nQSeal · rsa-sha256\nHTTP Signature"]
-    DB[("PostgreSQL\nProviders · Consents · Events\nAccounts · AccountBalances\nTransactions")]
+    DB[("SQLite\nProviders · Consents · Events\nAccounts · AccountBalances\nTransactions")]
   end
 
   subgraph SE["Salt Edge — Priora / IDS"]

@@ -276,11 +276,6 @@ This phase uses **ActiveAdmin** (without user authentication/authorization) as t
 ### Required (Rails app)
 - `SE_API_BASE_URL`
 - `SE_CALLBACK_BASE_URL`
-- `SE_REDIRECT_URI`
-
-### Conditionally Required
-- `SE_CLIENT_ID`
-- `SE_CLIENT_SECRET`
 
 ### Optional With Defaults
 - `SE_HTTP_TIMEOUT_SECONDS` (default: 30)
@@ -289,13 +284,9 @@ This phase uses **ActiveAdmin** (without user authentication/authorization) as t
 - `NGROK_CONFIG=$HOME/.ngrok2/ngrok.yml` (optional ngrok config path)
 - `NGROK_INSPECT` (optional; set `true` to enable ngrok inspector)
 
-### Shell Scripts Only (not read by Rails)
-- `SE_QSEAL_CERT_PATH` — path to signed cert file, used by `script/` helpers
-- `SE_QSEAL_KEY_PATH` — path to private key file, used by `script/` helpers
-- `SE_QSEAL_PUBLIC_KEY_PATH` / `SE_QSEAL_P12_PATH` — supplemental script inputs
-
 **Rails reads QSeal certs from the DB** (`certificates` table, encrypted private key via
-ActiveRecord::Encryption). The file-path env vars are not wired into `SaltEdge::Config`.
+ActiveRecord::Encryption). The `SE_QSEAL_*` file-path vars were used only by the investigation
+scripts now archived in `script/archives/` and have been removed from `.env.example`.
 
 ### Secrets Handling
 - Use local env storage only (no secrets in git)

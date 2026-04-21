@@ -17,7 +17,7 @@
 - Certificate runbook: [qseal_generation_runbook.md](../qseal_generation_runbook.md)
 - QSeal cert/key are stored in the `certificates` table (private key encrypted via ActiveRecord::Encryption).
   The Rails app (`SaltEdge::SignatureBuilder`) reads from the DB — not from file-path env vars.
-- Shell scripts (`script/`) still read from local files via `SE_QSEAL_CERT_PATH` / `SE_QSEAL_KEY_PATH`.
+- Investigation scripts that read `SE_QSEAL_*` / `SE_TPP_*` env vars have been archived to `script/archives/`; those vars are no longer in `.env.example`.
 - Current connector URL used during portal registration: `https://ad18-109-185-141-9.ngrok-free.app` (ephemeral ngrok URL)
 - Env contract: see `docs/milestone_4_ais_implementation_plan.md` → Environment Variable Contract section.
 
