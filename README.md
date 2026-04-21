@@ -52,12 +52,13 @@ environment needs encryption keys stored in its credentials file.
 bin/rails db:encryption:init
 
 # 2. Paste the block into each environment's credentials file
-bin/rails credentials:edit --environment development
-bin/rails credentials:edit --environment test
+EDITOR="nano --wait" bin/rails credentials:edit --environment development
+EDITOR="nano --wait" bin/rails credentials:edit --environment test
 ```
 
-The credentials editor opens `$EDITOR`. Paste the `active_record_encryption:` block, save, and
-exit. Repeat for each environment. The resulting `.key` files are git-ignored; keep them safe.
+The credentials editor opens the `$EDITOR`, in the example it is `nano`. 
+Paste the `active_record_encryption:` block, save, and exit. 
+Repeat for each environment. The resulting `.key` files are git-ignored; keep them safe.
 
 ### 4. Prepare the database
 
