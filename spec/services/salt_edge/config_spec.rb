@@ -72,5 +72,4 @@ RSpec.describe SaltEdge::Config do
       expect(config.http_timeout).to eq(60)
     end
   end
-
 end

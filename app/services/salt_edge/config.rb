@@ -29,6 +29,5 @@ module SaltEdge
     def http_timeout
       http_timeout_seconds.to_i
     end
-
   end
 end
