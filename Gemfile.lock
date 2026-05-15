@@ -155,7 +155,7 @@ GEM
     factory_bot_rails (6.5.1)
       factory_bot (~> 6.5)
       railties (>= 6.1.0)
-    flipper (1.4.1)
+    flipper (1.4.2)
       concurrent-ruby (< 2)
     formtastic (6.0.0)
       actionpack (>= 7.2.0)
